@@ -36,11 +36,13 @@ namespace GestorMEI.BLL.Services.Interfaces
             var tipoVendaComercio = await _tabelaGeralItemRepository.GetBySiglaAsync(tgTipoVendaServico.Id.Value, "CMRC");
             var tipoVendaIndustria = await _tabelaGeralItemRepository.GetBySiglaAsync(tgTipoVendaServico.Id.Value, "INDTR");
 
-            var vendasServico = vendas.Where(v => v.IdTGTipoVenda == tipoVendaServico.Id);
-            var vendasComercio = vendas.Where(v => v.IdTGTipoVenda == tipoVendaComercio.Id);
-            var vendasIndustria = vendas.Where(v => v.IdTGTipoVenda == tipoVendaIndustria.Id);
+            var vendasServico = vendas.Where(v => v.IdTGTipoVenda == tipoVendaServico.Id).ToList();
+            var vendasComercio = vendas.Where(v => v.IdTGTipoVenda == tipoVendaComercio.Id).ToList();
+            var vendasIndustria = vendas.Where(v => v.IdTGTipoVenda == tipoVendaIndustria.Id).ToList();
 
             var retorno = new List<RelatorioDTO>();
+            if (vendas == null || vendas.Any() == false)
+                return retorno;
 
             //Vendas Serviço
             var dtoServico = new RelatorioDTO();
