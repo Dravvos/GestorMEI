@@ -1,0 +1,6 @@
+@GestorMEI.Identity_HostAddress = http://localhost:5222
+
+GET {{GestorMEI.Identity_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

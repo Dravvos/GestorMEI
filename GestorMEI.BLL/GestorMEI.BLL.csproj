@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Cpf.Cnpj" Version="1.0.2" />
+    <PackageReference Include="Mapster" Version="7.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GestorMEI.Data\GestorMEI.Data.csproj" />
+    <ProjectReference Include="..\GestorMEI.DTO\GestorMEI.DTO.csproj" />
+  </ItemGroup>
+
+</Project>
