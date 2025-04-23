@@ -1,12 +1,8 @@
 ﻿using GestorMEI.BLL.Repositories.Interfaces;
+using GestorMEI.BLL.Services.Interfaces;
 using GestorMEI.DTO;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace GestorMEI.BLL.Services.Interfaces
+namespace GestorMEI.BLL.Services
 {
     public class RelatorioService : IRelatorioService
     {

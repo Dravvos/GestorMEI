@@ -67,11 +67,20 @@ namespace GestorMEI.API.Controllers
             }
         }
 
-        [HttpGet("[action]/{usuarioId}")]
-        public async Task<IActionResult> GetByUserId(Guid usuarioId)
+        [HttpGet("[action]")]
+        public async Task<IActionResult> GetByUserId()
         {
             try
             {
+                HttpContext.Request.Cookies.TryGetValue("AuthToken", out var cookie);
+
+                if (string.IsNullOrEmpty(cookie))
+                    return Unauthorized();
+
+                var decodedToken = new JwtSecurityTokenHandler().ReadJwtToken(cookie);
+                var claims = decodedToken.Claims;
+
+                var usuarioId = Guid.Parse(claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Sub)?.Value);
                 if (usuarioId == Guid.Empty)
                     return UnprocessableEntity("Id do usuário não pode ser vazio");
 
