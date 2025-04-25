@@ -22,6 +22,8 @@ namespace GestorMEI.Data
 
         public DbSet<AssinaturaModel> Assinatura { get; set; }
         public DbSet<EmpresaModel> Empresa { get; set; }
+        public DbSet<EstoqueModel> Estoque { get; set; }
+        public DbSet<ProdutoModel> Produtos { get; set; }
         public DbSet<TabelaGeralModel> TabelaGeral { get; set; }
         public DbSet<TabelaGeralItemModel> TabelaGeralItem { get; set; }
         public DbSet<VendaModel> Vendas { get; set; }

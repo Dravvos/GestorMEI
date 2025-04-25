@@ -7,6 +7,7 @@ using GestorMEI.BLL.Repositories.Interfaces;
 using GestorMEI.Data;
 using GestorMEI.Data.Model;
 using GestorMEI.DTO;
+using Microsoft.EntityFrameworkCore;
 
 namespace GestorMEI.BLL.Repositories
 {
