@@ -1,8 +1,13 @@
 ﻿using GestorMEI.BLL.Services.Interfaces;
 using GestorMEI.DTO;
+using MercadoPago.Client.Common;
+using MercadoPago.Client.Payment;
+using MercadoPago.Config;
+using MercadoPago.Resource.Payment;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
@@ -117,6 +122,46 @@ namespace GestorMEI.API.Controllers
                 if (ex.InnerException == null)
                     return StatusCode(500, ex.Message);
                 return StatusCode(500, ex.InnerException.Message);
+            }
+        }
+
+        [HttpPost("Process")]
+        public async Task<IActionResult> ProcessarPagamento([FromBody] MercadoPagoDTO cardForm)
+        {
+            MercadoPagoConfig.AccessToken = "TEST-7537308538793161-041922-98035968fe22dd4906d91066126786e7-706381060";
+            try
+            {
+                var paymentRequest = new PaymentCreateRequest
+                {
+                    TransactionAmount = cardForm.FormData.Transaction_Amount,
+                    Token = cardForm.FormData.Token,
+                    Description = "Sistema de Gestão para MEI",
+                    Installments = cardForm.FormData.Installments,
+                    PaymentMethodId = cardForm.FormData.Payment_Method_Id,
+                    Payer = new PaymentPayerRequest
+                    {
+                        Email = cardForm.FormData.Payer.Email,
+                        Identification = new IdentificationRequest
+                        {
+                            Type = cardForm.FormData.Payer.Identification.Type,
+                            Number = cardForm.FormData.Payer.Identification.Number,
+                        },
+                        FirstName = cardForm.FormData.Payer.CardHolderName
+                    },
+                };
+
+                var client = new PaymentClient();
+                Payment payment = await client.CreateAsync(paymentRequest);
+                if (payment.Status.ToUpper().Trim() == "APPROVED")
+                    payment = await client.CaptureAsync(payment.Id ?? 0);
+                return Ok(payment.Status);
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException == null)
+                    return StatusCode(500, ex.Message);
+                return StatusCode(500, ex.InnerException.Message);
+
             }
         }
     }

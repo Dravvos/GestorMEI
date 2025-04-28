@@ -25,7 +25,7 @@ namespace GestorMEI.API.Controllers
         }
 
         [Route("[action]/{id}")]
-        [HttpGet, Authorize(Roles = Role.Admin)]
+        [HttpGet, Authorize]
         public async Task<IActionResult> GetTabelaGeralById(Guid id)
         {
             try
@@ -137,7 +137,7 @@ namespace GestorMEI.API.Controllers
         }
 
         [Route("[action]/{id}")]
-        [HttpGet, Authorize(Roles = Role.Admin)]
+        [HttpGet, Authorize]
         public async Task<IActionResult> GetTabelaGeralItemById(Guid id)
         {
             var tabelaGeral = await _tabelaGeralItemService.GetByIdAsync(id);
