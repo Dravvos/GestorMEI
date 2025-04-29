@@ -36,7 +36,8 @@ namespace GestorMEI.BLL.Repositories
 
         public async Task<AssinaturaDTO> GetAssinaturaByUserId(Guid usuarioId)
         {
-            var assinatura = await con.Assinatura.FirstOrDefaultAsync(x => x.UsuarioId == usuarioId);
+            var assinatura = await con.Assinatura.Include(x => x.TipoAssinatura.TabelaGeral).Include(x=>x.StatusAssinatura.TabelaGeral)
+                .FirstOrDefaultAsync(x => x.UsuarioId == usuarioId);
             return Map<AssinaturaDTO>.Convert(assinatura);
         }
 
@@ -46,11 +47,11 @@ namespace GestorMEI.BLL.Repositories
             model.UsuarioId = assinatura.UsuarioId;
             model.DataInicio = assinatura.DataInicio;
             model.DataFim = assinatura.DataFim;
-            model.IdTGStatusAssinatura= assinatura.IdTGStatusAssinatura;
-            model.IdTGTipoAssinatura= assinatura.IdTGTipoAssinatura;
+            model.IdTGStatusAssinatura = assinatura.IdTGStatusAssinatura;
+            model.IdTGTipoAssinatura = assinatura.IdTGTipoAssinatura;
             model.DataAlteracao = assinatura.DataAlteracao;
 
-            await con.SaveChangesAsync();            
+            await con.SaveChangesAsync();
         }
     }
 }

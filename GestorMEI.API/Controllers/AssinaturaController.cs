@@ -21,9 +21,14 @@ namespace GestorMEI.API.Controllers
     public class AssinaturaController : ControllerBase
     {
         private readonly IAssinaturaService _service;
-        public AssinaturaController(IAssinaturaService service)
+        private readonly ITabelaGeralItemService _tabelaGeralItemService;
+        private readonly ITabelaGeralService _tabelaGeralService;
+
+        public AssinaturaController(IAssinaturaService service, ITabelaGeralItemService tabelaGeralItemService, ITabelaGeralService tabelaGeralService)
         {
             _service = service;
+            _tabelaGeralItemService = tabelaGeralItemService;
+            _tabelaGeralService = tabelaGeralService;
         }
 
         [HttpGet]
@@ -127,8 +132,8 @@ namespace GestorMEI.API.Controllers
             }
         }
 
-        [HttpPost("Process")]
-        public async Task<IActionResult> ProcessarPagamento([FromBody] MercadoPagoDTO cardForm)
+        [HttpPost("Process/{tipoAssinaturaId}")]
+        public async Task<IActionResult> ProcessarPagamento([FromBody] MercadoPagoDTO cardForm, Guid tipoAssinaturaId)
         {
             MercadoPagoConfig.AccessToken = "TEST-7537308538793161-041922-98035968fe22dd4906d91066126786e7-706381060";
             try
@@ -166,47 +171,36 @@ namespace GestorMEI.API.Controllers
                 };
 
                 var client = new PaymentClient();
-                var c = new MercadoPago.Client.Preapproval.PreapprovalClient();
 
                 Payment payment = await client.CreateAsync(paymentRequest, requestOptions);
                 if (payment.Status.ToUpper().Trim() == "APPROVED")
                     payment = await client.CaptureAsync(payment.Id ?? 0);
-                else if (payment.Status.ToUpper().Trim() == "REJECTED")
-                {
-                    return StatusCode(500, "Pagamento não pode ser processado");
-                }
+
                 if (payment.Status.ToUpper().Trim() == "APPROVED")
                 {
-                    var assinatura = new PreapprovalCreateRequest();
-                    assinatura.AutoRecurring = new PreApprovalAutoRecurringCreateRequest
-                    {
-                        CurrencyId = "BRL",
-                        Frequency = 1,
-                        FrequencyType = "months",
-                        TransactionAmount = cardForm.FormData.Transaction_Amount,
-                    };
-                    assinatura.BackUrl = "http://127.0.0.1:5173/Sucesso";
-                    assinatura.Reason = "Sistema de Gestão para MEI";
-                    assinatura.PayerEmail = cardForm.FormData.Payer.Email;
-                    
-                    var assinaturaClient = new PreapprovalClient();
-                    var ass = await assinaturaClient.CreateAsync(assinatura);
-                    
                     var usuarioId = Guid.Parse(claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Sub)?.Value);
                     var assinaturaExistente = await _service.GetAssinaturaByUserId(usuarioId);
-                    
+
                     if (assinaturaExistente == null)
                     {
+                        var tgStatusAssinatura = await _tabelaGeralService.GetByNomeAsync("StatusAssinatura");
+                        var statusAssinatura = await _tabelaGeralItemService.GetBySiglaAsync(tgStatusAssinatura.Id.GetValueOrDefault(), "ATV");
                         await _service.CreateAssinatura(new AssinaturaDTO
                         {
-                            DataInicio = DateTime.UtcNow.Date.ToUniversalTime(),
+                            DataInicio = DateTime.UtcNow.Date,
                             DataFim = DateTime.UtcNow.Date.AddDays(30),
                             UsuarioId = usuarioId,
-
+                            IdTGTipoAssinatura = tipoAssinaturaId,
+                            IdTGStatusAssinatura = statusAssinatura.Id.GetValueOrDefault(),
+                            UsuarioInclusao = User.FindFirstValue(JwtRegisteredClaimNames.Name)
                         });
                     }
                     else
                     {
+                        assinaturaExistente.DataInicio = DateTime.UtcNow.Date.ToUniversalTime();
+                        assinaturaExistente.DataFim = DateTime.UtcNow.Date.AddDays(30);
+                        assinaturaExistente.UsuarioAlteracao = User.FindFirstValue(JwtRegisteredClaimNames.Name);
+                        await _service.UpdateAssinatura(assinaturaExistente);
 
                     }
                 }

@@ -15,5 +15,7 @@ namespace GestorMEI.DTO
         public DateTime DataInicio { get; set; }
         public DateTime DataFim { get; set; }
         public Guid IdTGStatusAssinatura { get; set; }
+        public TabelaGeralItemDTO? StatusAssinatura { get; set; }
+        public TabelaGeralItemDTO? TipoAssinatura { get; set; }
     }
 }

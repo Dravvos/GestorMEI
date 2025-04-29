@@ -12,17 +12,19 @@ namespace GestorMEI.BLL.Services
     public class AssinaturaService : IAssinaturaService
     {
         private readonly IAssinaturaRepository _assinaturaRepository;
+        private readonly ITabelaGeralItemRepository _tabelaGeralItemRepository;
 
-        public AssinaturaService(IAssinaturaRepository assinaturaRepository)
+        public AssinaturaService(IAssinaturaRepository assinaturaRepository, ITabelaGeralItemRepository tabelaGeralItemRepository)
         {
             _assinaturaRepository = assinaturaRepository;
+            _tabelaGeralItemRepository = tabelaGeralItemRepository;
         }
 
         public void ValidarAssinatura(AssinaturaDTO dto)
         {
-            if (dto.DataInicio == DateTime.MinValue || dto.DataInicio == DateTime.MaxValue || dto.DataInicio < DateTime.UtcNow)
+            if (dto.DataInicio == DateTime.MinValue || dto.DataInicio == DateTime.MaxValue || dto.DataInicio.Date < DateTime.Now.Date)
                 throw new ArgumentException("Data de início inválida.");
-            if (dto.DataFim == DateTime.MinValue || dto.DataFim == DateTime.MaxValue || dto.DataFim < DateTime.UtcNow)
+            if (dto.DataFim == DateTime.MinValue || dto.DataFim == DateTime.MaxValue || dto.DataFim < DateTime.Now.Date)
                 throw new ArgumentException("Data de fim inválida.");
             if (dto.UsuarioId == Guid.Empty)
                 throw new ArgumentNullException("Usuário inválido.");
@@ -45,7 +47,7 @@ namespace GestorMEI.BLL.Services
         {
             if (id == Guid.Empty)
                 throw new ArgumentNullException("Id inválido.");
-            
+
             var assinatura = await _assinaturaRepository.GetAssinaturaByUserId(id);
             if (assinatura == null)
                 throw new KeyNotFoundException();
@@ -55,9 +57,10 @@ namespace GestorMEI.BLL.Services
 
         public async Task<AssinaturaDTO> GetAssinaturaByUserId(Guid usuarioId)
         {
-            if(usuarioId == Guid.Empty)
+            if (usuarioId == Guid.Empty)
                 throw new ArgumentNullException("Usuário inválido.");
-            return await _assinaturaRepository.GetAssinaturaByUserId(usuarioId);
+            var assinatura = await _assinaturaRepository.GetAssinaturaByUserId(usuarioId);
+            return assinatura;
         }
 
         public async Task UpdateAssinatura(AssinaturaDTO assinatura)
@@ -68,7 +71,7 @@ namespace GestorMEI.BLL.Services
             var assinaturaExistente = _assinaturaRepository.GetAssinaturaByUserId(assinatura.UsuarioId);
             if (assinaturaExistente == null)
                 throw new KeyNotFoundException("Assinatura não encontrada.");
-            
+
             assinatura.DataAlteracao = DateTime.UtcNow.ToUniversalTime();
 
             await _assinaturaRepository.UpdateAssinatura(assinatura);
