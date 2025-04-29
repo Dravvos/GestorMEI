@@ -73,13 +73,15 @@ namespace GestorMEI.Identity.Controllers
             var result = await _signInManager.PasswordSignInAsync(user.UserName, dto.Password, false, false);
             if (result.Succeeded)
             {
-                var token =  await _service.GenerateTokenAsync(user, _userManager);
+                var token = await _service.GenerateTokenAsync(user, _userManager);
                 var claims = new List<Claim>
                 {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id),
                 new Claim(JwtRegisteredClaimNames.Name, user.UserName),
                 new Claim(JwtRegisteredClaimNames.Jti,Guid.NewGuid().ToString()),
-                new Claim(JwtRegisteredClaimNames.Email,user.Email)
+                new Claim(JwtRegisteredClaimNames.Email,user.Email),
+                new Claim(JwtRegisteredClaimNames.GivenName,user.Nome),
+                new Claim(JwtRegisteredClaimNames.FamilyName, user.Sobrenome),
                 };
                 var roles = await _userManager.GetRolesAsync(user);
                 foreach (var role in roles)
@@ -172,7 +174,7 @@ namespace GestorMEI.Identity.Controllers
         }
 
         [HttpGet]
-        
+
         public IActionResult user()
         {
             HttpContext.Request.Cookies.TryGetValue("AuthToken", out var cookie);
@@ -187,8 +189,9 @@ namespace GestorMEI.Identity.Controllers
             {
                 UserName = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Name)?.Value,
                 UserId = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Sub)?.Value,
-                Role = claims.FirstOrDefault(x => x.Type == "role")?.Value // Check role
-                                                                    // Add other claims as needed
+                Role = claims.FirstOrDefault(x => x.Type == "role")?.Value, // Check role
+                Nome = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.GivenName), // Add other claims as needed
+                Sobrenome = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.FamilyName),
             });
         }
 
