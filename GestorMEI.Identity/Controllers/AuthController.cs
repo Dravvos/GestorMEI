@@ -1,4 +1,4 @@
-﻿using GestorMEI.DTO;
+﻿using GestorMEI.DTO.Auth;
 using GestorMEI.Identity.Configuration;
 using GestorMEI.Identity.Models;
 using GestorMEI.Identity.Services;
@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.IdentityModel.Tokens;
+using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Net.Mail;
@@ -71,7 +72,9 @@ namespace GestorMEI.Identity.Controllers
             var user = await _userManager.FindByNameAsync(dto.Username);
             if (user == null)
             {
-                return BadRequest("Invalid username/password");
+                user = await _userManager.FindByEmailAsync(dto.Username);
+                if (user == null)
+                    return BadRequest("Invalid username/password");
             }
 
             var result = await _signInManager.PasswordSignInAsync(user.UserName, dto.Password, false, false);
@@ -194,8 +197,8 @@ namespace GestorMEI.Identity.Controllers
                 UserName = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Name)?.Value,
                 UserId = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Sub)?.Value,
                 Role = claims.FirstOrDefault(x => x.Type == "role")?.Value, // Check role
-                Nome = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.GivenName).Value, // Add other claims as needed
-                Sobrenome = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.FamilyName).Value,
+                Nome = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.GivenName)?.Value, // Add other claims as needed
+                Sobrenome = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.FamilyName)?.Value,
             });
         }
 
@@ -213,7 +216,11 @@ namespace GestorMEI.Identity.Controllers
         {
             var user = await _userManager.FindByNameAsync(username);
             if (user == null)
-                return NoContent();
+            {
+                user = await _userManager.FindByEmailAsync(username);
+                if (user == null)
+                    return NoContent();
+            }
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
 
@@ -223,10 +230,18 @@ namespace GestorMEI.Identity.Controllers
             mail.From = new MailAddress("daniddias53@gmail.com");
             mail.To.Add(user.Email!);
 
+            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            var isDevelopment = environment == Environments.Development;
+            var url = "";
+            if (isDevelopment)
+                url = $"http://localhost:5173/ResetSenha/{encodedToken}";
+            else
+                url = $"https://www.danieloliveira.net.br/GestorMEI.Web/ResetSenha/{encodedToken}";
+
             mail.Subject = "Recuperação de Senha";
-            mail.Body = $"\tOlá,\n \n \n \n \nRecebemos uma solicitação para redefinir a senha da conta GestorMEI  associada ao e-mail {user.Email}.\n \n \n \n \n" +
-                $"Redefina sua senha: https://localhost:5173/ResetSenha/{encodedToken} \n \n \n \n \nSe você não fez essa solicitação ou se está tendo problemas para fazer login, entre em contato pelo site de suporte. " +
-                $"Nenhuma alteração foi feita na sua conta.\n \n \n \n \n– Equipe da GestorMEI";
+            mail.Body = $"\t<h1>Olá,</h1> <br /> <br /> <br /> <br /> <br />Recebemos uma solicitação para redefinir a senha da conta GestorMEI associada ao e-mail {user.Email}.<br /> <br /> <br /> <br /> <br />" +
+                $"<h4>Redefina sua senha: {url}</h4> <br /> <br /> <br /> <br /> <br />Se você não fez essa solicitação ou se está tendo problemas para fazer login, entre em contato. " +
+                $"<p>Nenhuma alteração foi feita na sua conta</p>.<br /> <br /> <br /> <br /> <br /> – <p>Equipe da GestorMEI</p>";
             mail.IsBodyHtml = true;
             var client = new SmtpClient("smtp.gmail.com", 587);
             client.EnableSsl = true;
@@ -236,8 +251,32 @@ namespace GestorMEI.Identity.Controllers
             client.Send(mail);
             client.Dispose();
             mail.Dispose();
-            
+
             return Ok();
+        }
+
+        [HttpPut]
+        [AllowAnonymous]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetSenhaDTO dto)
+        {
+            if (string.IsNullOrEmpty(dto.Email))
+                return BadRequest("Preencha o email");
+
+            if (string.IsNullOrEmpty(dto.NewPassword))
+                return BadRequest("Preencha a nova senha");
+
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            if (user == null)
+            {
+                user = await _userManager.FindByNameAsync(dto.Email);
+                if (user == null)
+                    return NoContent();
+            }
+            var decodedToken = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(dto.Token));
+            var result = await _userManager.ResetPasswordAsync(user, decodedToken, dto.NewPassword);
+            if (result.Succeeded)
+                return Ok();
+            return StatusCode(500, result.Errors);
         }
     }
 }

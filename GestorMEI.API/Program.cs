@@ -42,57 +42,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             }
         };
     });
-/*
-if (builder.Environment.IsProduction())
-{
-    builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-        .AddCookie(options =>
-        {
-            options.Cookie.Name = "AuthToken";
-            options.Cookie.HttpOnly = true;
-            options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // HTTPS only
-            options.Cookie.SameSite = SameSiteMode.Strict; // or lax
-            options.ExpireTimeSpan = TimeSpan.FromHours(3); // Short-lived token
-            //options.LoginPath = "https://www.danieloliveira.net.br/GestorMEI.Identity/api/Auth/Login";
-        });
-    builder.Services.AddAntiforgery(options =>
-    {
-        options.Cookie.Domain = ".danieloliveira.net.br";
-        options.Cookie.Name = "X-CSRF-TOKEN";
-        options.HeaderName = "X-XSRF-TOKEN";
-    });
-}
-else
-{
-    builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>
-    {
-        options.Cookie.Name = "AuthToken";
-        options.Cookie.HttpOnly = true;
-        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-        options.Cookie.SameSite = SameSiteMode.None; // or Strict
-        options.ExpireTimeSpan = TimeSpan.FromHours(3); // Short-lived token
-        //options.LoginPath = "/api/Auth/Login";
-    });
-
-    builder.Services.AddAntiforgery(options =>
-    {
-        options.HeaderName = "X-XSRF-TOKEN";
-        options.Cookie.Name = "X-CSRF-TOKEN";
-    });
-}
-*/
 builder.Services.AddControllers();
-/*
-builder.Services.AddAuthentication("Bearer").AddJwtBearer(options =>
-{
-    options.Authority = "https://localhost:44327/api/";
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateAudience = false,
-    };
-});
-*/
 
 
 builder.Services.AddEndpointsApiExplorer();

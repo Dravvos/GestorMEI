@@ -1,3 +1,4 @@
+using GestorMEI.Identity;
 using GestorMEI.Identity.Initializer;
 using GestorMEI.Identity.Models;
 using GestorMEI.Identity.Services;
@@ -5,12 +6,26 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using System.Globalization;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+
+var supportedCultures = new[] { "pt" };
+
+var localizationOptions = new RequestLocalizationOptions()
+    .SetDefaultCulture(supportedCultures[0])
+    .AddSupportedCultures(supportedCultures)
+    .AddSupportedUICultures(supportedCultures);
+
+
 
 builder.Services.AddDbContext<PostgresContext>(options =>
 {
@@ -19,7 +34,8 @@ builder.Services.AddDbContext<PostgresContext>(options =>
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<PostgresContext>()
-    .AddDefaultTokenProviders();
+    .AddDefaultTokenProviders()
+    .AddErrorDescriber<LocalizedIdentityErrorDescriber>();
 
 
 builder.Services.AddAuthentication(options =>
@@ -106,6 +122,9 @@ builder.Services.AddAntiforgery(options =>
 
 
 var app = builder.Build();
+
+app.UseRequestLocalization(localizationOptions);
+
 app.UseAntiforgery();
 
 app.UseCors(builder =>
@@ -118,6 +137,7 @@ using var scope = app.Services.CreateScope();
 var initializer = scope.ServiceProvider.GetService<IDBInitializer>();
 
 app.UseHttpsRedirection();
+
 app.UseAuthentication();
 app.UseAuthorization();
 initializer.Initialize();
