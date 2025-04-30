@@ -8,10 +8,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
+using System.Net.Mail;
 using System.Runtime.CompilerServices;
 using System.Security.Claims;
+using System.Text;
 
 namespace GestorMEI.Identity.Controllers
 {
@@ -190,8 +194,8 @@ namespace GestorMEI.Identity.Controllers
                 UserName = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Name)?.Value,
                 UserId = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Sub)?.Value,
                 Role = claims.FirstOrDefault(x => x.Type == "role")?.Value, // Check role
-                Nome = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.GivenName), // Add other claims as needed
-                Sobrenome = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.FamilyName),
+                Nome = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.GivenName).Value, // Add other claims as needed
+                Sobrenome = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.FamilyName).Value,
             });
         }
 
@@ -199,6 +203,40 @@ namespace GestorMEI.Identity.Controllers
         public IActionResult GetCsrfToken()
         {
             // ASP.NET Core auto-generates and sets the CSRF token in a cookie
+            return Ok();
+        }
+
+        [HttpPost]
+        [Route("{username}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> SendResetEmail(string username)
+        {
+            var user = await _userManager.FindByNameAsync(username);
+            if (user == null)
+                return NoContent();
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+            var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
+
+            MailMessage mail = new MailMessage();
+            mail.From = new MailAddress("daniddias53@gmail.com");
+            mail.To.Add(user.Email!);
+
+            mail.Subject = "Recuperação de Senha";
+            mail.Body = $"\tOlá,\n \n \n \n \nRecebemos uma solicitação para redefinir a senha da conta GestorMEI  associada ao e-mail {user.Email}.\n \n \n \n \n" +
+                $"Redefina sua senha: https://localhost:5173/ResetSenha/{encodedToken} \n \n \n \n \nSe você não fez essa solicitação ou se está tendo problemas para fazer login, entre em contato pelo site de suporte. " +
+                $"Nenhuma alteração foi feita na sua conta.\n \n \n \n \n– Equipe da GestorMEI";
+            mail.IsBodyHtml = true;
+            var client = new SmtpClient("smtp.gmail.com", 587);
+            client.EnableSsl = true;
+            client.Timeout = 50000;
+            client.UseDefaultCredentials = false;
+            client.Credentials = new NetworkCredential("daniddias53@gmail.com", "muiergmbdnffdpyj");
+            client.Send(mail);
+            client.Dispose();
+            mail.Dispose();
+            
             return Ok();
         }
     }
