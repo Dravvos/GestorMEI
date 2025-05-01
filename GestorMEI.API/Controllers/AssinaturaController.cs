@@ -9,9 +9,11 @@ using MercadoPago.Resource.Payment;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Text;
 
 namespace GestorMEI.API.Controllers
 {
@@ -32,7 +34,33 @@ namespace GestorMEI.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetById()
+        [Route("[action]")]
+        public IActionResult GetKey()
+        {
+            try
+            {
+                string publicKey = "TEST-03cea708-3e86-4543-bfa4-cb30b6887939";
+                var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+                var isDevelopment = environment == Environments.Development;
+
+                if (isDevelopment == false)
+                    publicKey = "";
+
+                var encodedKey = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(publicKey));
+                return Ok(encodedKey);
+
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException == null)
+                    return StatusCode(500, ex.Message);
+                return StatusCode(500, ex.InnerException.Message);
+
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetByUserId()
         {
             try
             {
@@ -181,10 +209,10 @@ namespace GestorMEI.API.Controllers
                     var usuarioId = Guid.Parse(claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Sub)?.Value);
                     var assinaturaExistente = await _service.GetAssinaturaByUserId(usuarioId);
 
+                    var tgStatusAssinatura = await _tabelaGeralService.GetByNomeAsync("StatusAssinatura");
+                    var statusAssinatura = await _tabelaGeralItemService.GetBySiglaAsync(tgStatusAssinatura.Id.GetValueOrDefault(), "ATV");
                     if (assinaturaExistente == null)
                     {
-                        var tgStatusAssinatura = await _tabelaGeralService.GetByNomeAsync("StatusAssinatura");
-                        var statusAssinatura = await _tabelaGeralItemService.GetBySiglaAsync(tgStatusAssinatura.Id.GetValueOrDefault(), "ATV");
                         await _service.CreateAssinatura(new AssinaturaDTO
                         {
                             DataInicio = DateTime.UtcNow.Date,
@@ -197,6 +225,8 @@ namespace GestorMEI.API.Controllers
                     }
                     else
                     {
+                        assinaturaExistente.IdTGStatusAssinatura = statusAssinatura.Id.GetValueOrDefault();
+                        assinaturaExistente.IdTGTipoAssinatura = tipoAssinaturaId;
                         assinaturaExistente.DataInicio = DateTime.UtcNow.Date.ToUniversalTime();
                         assinaturaExistente.DataFim = DateTime.UtcNow.Date.AddDays(30);
                         assinaturaExistente.UsuarioAlteracao = User.FindFirstValue(JwtRegisteredClaimNames.Name);
