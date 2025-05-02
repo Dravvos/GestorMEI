@@ -89,6 +89,7 @@ namespace GestorMEI.Identity.Controllers
                 new Claim(JwtRegisteredClaimNames.Email,user.Email),
                 new Claim(JwtRegisteredClaimNames.GivenName,user.Nome),
                 new Claim(JwtRegisteredClaimNames.FamilyName, user.Sobrenome),
+                new Claim(JwtRegisteredClaimNames.Email,user.Email)
                 };
                 var roles = await _userManager.GetRolesAsync(user);
                 foreach (var role in roles)
@@ -199,6 +200,7 @@ namespace GestorMEI.Identity.Controllers
                 Role = claims.FirstOrDefault(x => x.Type == "role")?.Value, // Check role
                 Nome = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.GivenName)?.Value, // Add other claims as needed
                 Sobrenome = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.FamilyName)?.Value,
+                Email = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Email)?.Value
             });
         }
 
@@ -277,6 +279,35 @@ namespace GestorMEI.Identity.Controllers
             if (result.Succeeded)
                 return Ok();
             return StatusCode(500, result.Errors);
+        }
+
+        [HttpPut]
+        [Authorize]
+        public async Task<IActionResult> UpdateUser([FromBody] SignUpDTO dto)
+        {
+            try
+            {
+                var user = await _userManager.FindByEmailAsync(dto.Email);
+                if (user == null)
+                {
+                    user = await _userManager.FindByNameAsync(dto.Email);
+                    if (user == null)
+                        return NoContent();
+                }
+                user.Nome = dto.Nome;
+                user.Sobrenome = dto.Sobrenome;
+                var result = await _userManager.UpdateAsync(user);
+                if (result.Succeeded)
+                    return Ok();
+                return BadRequest(result.Errors);
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException == null)
+                    return StatusCode(500, ex.Message);
+
+                return StatusCode(500, ex.InnerException.Message);
+            }
         }
     }
 }
