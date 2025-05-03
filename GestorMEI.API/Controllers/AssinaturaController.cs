@@ -179,30 +179,41 @@ namespace GestorMEI.API.Controllers
                 var jti = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Jti)?.Value;
 
                 requestOptions.CustomHeaders.Add("x-idempotency-key", jti);
-                var paymentRequest = new PaymentCreateRequest
-                {
-                    TransactionAmount = cardForm.FormData.Transaction_Amount,
-                    Token = cardForm.FormData.Token,
-                    Description = "Sistema de Gestão para MEI",
-                    Installments = cardForm.FormData.Installments,
-                    PaymentMethodId = cardForm.FormData.Payment_Method_Id,
+                var paymentRequest = new PaymentCreateRequest();
 
-                    Payer = new PaymentPayerRequest
+                if (cardForm.PaymentType == "bank_transfer")
+                {
+                    paymentRequest.TransactionAmount = cardForm.FormData.Transaction_Amount;
+                    paymentRequest.Description = "Sistema de Gestão para MEI";
+                    paymentRequest.PaymentMethodId = "pix";
+                    paymentRequest.Payer = new PaymentPayerRequest
                     {
                         Email = cardForm.FormData.Payer.Email,
-                        Identification = new IdentificationRequest
-                        {
-                            Type = cardForm.FormData.Payer.Identification.Type,
-                            Number = cardForm.FormData.Payer.Identification.Number,
-                        },
-                    },
-                };
+                        FirstName = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.GivenName)?.Value,
+                        LastName = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.FamilyName)?.Value,
+                    };
+                }
+                else
+                {
+                    paymentRequest.TransactionAmount = cardForm.FormData.Transaction_Amount;
+                    paymentRequest.Token = cardForm.FormData.Token;
+                    paymentRequest.Description = "Sistema de Gestão para MEI";
+                    paymentRequest.Installments = cardForm.FormData.Installments;
+                    paymentRequest.PaymentMethodId = cardForm.FormData.Payment_Method_Id;
+
+                    paymentRequest.Payer = new PaymentPayerRequest
+                    {
+                        Email = cardForm.FormData.Payer.Email,
+                    };
+                }
 
                 var client = new PaymentClient();
 
                 Payment payment = await client.CreateAsync(paymentRequest, requestOptions);
                 if (payment.Status.ToUpper().Trim() == "APPROVED")
                     payment = await client.CaptureAsync(payment.Id ?? 0);
+                else if (payment.Status.ToUpper().Trim() == "PENDING")
+                    return Ok(payment);
 
                 if (payment.Status.ToUpper().Trim() == "APPROVED")
                 {

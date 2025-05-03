@@ -9,6 +9,7 @@ namespace GestorMEI.DTO
     public class VendaDTO : BaseDTO
     {
         public Guid EmpresaId { get; set; }
+        public EmpresaDTO? Empresa { get; set; }
         public bool ComNF { get; set; }
         public float ValorVenda { get; set; }
         public Guid IdTGTipoVenda { get; set; } // Comércio, Serviço, Indústria

@@ -42,7 +42,7 @@ namespace GestorMEI.BLL.Repositories
 
         public async Task<IEnumerable<VendaDTO>> GetVendasAsync(Guid empresaId)
         {
-            var vendas = await con.Vendas.Where(x => x.EmpresaId == empresaId).Include(x => x.TipoVenda.TabelaGeral).ToListAsync();
+            var vendas = await con.Vendas.Where(x => x.EmpresaId == empresaId).Include(x => x.TipoVenda.TabelaGeral).Include(x=>x.Empresa).ToListAsync();
             return Map<List<VendaDTO>>.Convert(vendas);
         }
 
