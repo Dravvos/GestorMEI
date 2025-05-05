@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GestorMEI.Data.Migrations
 {
     [DbContext(typeof(MeiContext))]
-    [Migration("20250411013355_MEI-DB")]
+    [Migration("20250505003530_MEI-DB")]
     partial class MEIDB
     {
         /// <inheritdoc />
@@ -127,7 +127,6 @@ namespace GestorMEI.Data.Migrations
                         .HasColumnName("Estado");
 
                     b.Property<string>("NomeFantasia")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("NomeFantasia");
 

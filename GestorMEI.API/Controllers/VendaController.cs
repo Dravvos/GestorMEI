@@ -89,7 +89,7 @@ namespace GestorMEI.API.Controllers
             }
         }
 
-        private static long ObterEspacoUtilizado(IEnumerable<VendaDTO> vendas, long objectSize)
+        private long ObterEspacoUtilizado(IEnumerable<VendaDTO> vendas, long objectSize)
         {
             foreach (var venda in vendas)
             {

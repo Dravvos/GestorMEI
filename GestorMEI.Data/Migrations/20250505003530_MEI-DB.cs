@@ -20,7 +20,7 @@ namespace GestorMEI.Data.Migrations
                     CNPJ = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     Email = table.Column<string>(type: "text", nullable: false),
                     Telefone = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
-                    NomeFantasia = table.Column<string>(type: "text", nullable: false),
+                    NomeFantasia = table.Column<string>(type: "text", nullable: true),
                     CEP = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: false),
                     Endereco = table.Column<string>(type: "text", nullable: false),
                     Numero = table.Column<long>(type: "bigint", nullable: false),

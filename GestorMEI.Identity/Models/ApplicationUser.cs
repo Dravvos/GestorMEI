@@ -6,5 +6,6 @@ namespace GestorMEI.Identity.Models
     {
         public string? Nome { get; set; }
         public string? Sobrenome { get; set; }
+        public bool AceitouOsTermosDeUsoPrivacidade { get; set; }
     }
 }

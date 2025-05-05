@@ -30,8 +30,10 @@ namespace GestorMEI.Identity.Initializer
                 Email = "daniddias53@gmail.com",
                 EmailConfirmed = true,
                 PhoneNumber = "+55 (11) 99007-1115",
+                PhoneNumberConfirmed = true,
                 Sobrenome = "Admin",
                 UserName = "Admin-DD",
+                AceitouOsTermosDeUsoPrivacidade = true
             };
 
             _userManager.CreateAsync(admin, "*Igowallah2024*").GetAwaiter().GetResult();
@@ -52,7 +54,9 @@ namespace GestorMEI.Identity.Initializer
                 EmailConfirmed = true,
                 PhoneNumber = "+55 (11) 99007-1115",
                 Sobrenome = "Cliente",
-                UserName = "Client-DD"
+                UserName = "Client-DD",
+                PhoneNumberConfirmed = true,
+                AceitouOsTermosDeUsoPrivacidade = true
             };
 
             _userManager.CreateAsync(client, "*Igowallah2024*").GetAwaiter().GetResult();

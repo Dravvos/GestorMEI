@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GestorMEI.Identity.Migrations
 {
     [DbContext(typeof(PostgresContext))]
-    [Migration("20250403231335_IdentityMEI")]
+    [Migration("20250505002958_IdentityMEI")]
     partial class IdentityMEI
     {
         /// <inheritdoc />
@@ -32,6 +32,9 @@ namespace GestorMEI.Identity.Migrations
 
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer");
+
+                    b.Property<bool>("AceitouOsTermosDeUsoPrivacidade")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
