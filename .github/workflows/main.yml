@@ -2,7 +2,7 @@ name: Deploy to MEICaixa BackEnd
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
 
 jobs:
   deploy:
