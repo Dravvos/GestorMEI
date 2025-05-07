@@ -17,10 +17,10 @@ jobs:
         dotnet-version: '8.x.x'
     
     - name: Restore dependencies
-      run: dotnet restore ./GestorMEI.sln
+      run: dotnet restore ./MEI.sln
     
     - name: Build
-      run: dotnet build ./GestorMEI.sln -c Release --no-restore
+      run: dotnet build ./MEI.sln -c Release --no-restore
     
     - name: Publish API
       run: dotnet publish ./GestorMEI.API/GestorMEI.API.csproj -c Release --no-build -o ./GestorMEI/GestorMEI.API/publish
