@@ -44,7 +44,7 @@ namespace GestorMEI.API.Controllers
                 var isDevelopment = environment == Environments.Development;
 
                 if (isDevelopment == false)
-                    publicKey = "";
+                    publicKey = "APP_USR-c8512e2c-85b7-4970-a5cf-999a7841049b";
 
                 var encodedKey = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(publicKey));
                 return Ok(encodedKey);
@@ -164,6 +164,13 @@ namespace GestorMEI.API.Controllers
         public async Task<IActionResult> ProcessarPagamento([FromBody] MercadoPagoDTO cardForm, Guid tipoAssinaturaId)
         {
             MercadoPagoConfig.AccessToken = "TEST-7537308538793161-041922-98035968fe22dd4906d91066126786e7-706381060";
+
+            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            var isDevelopment = environment == Environments.Development;
+
+            if (isDevelopment == false)
+                MercadoPagoConfig.AccessToken = Environment.GetEnvironmentVariable("MercadoPagoSecretKey");
+
             try
             {
                 var requestOptions = new RequestOptions();
