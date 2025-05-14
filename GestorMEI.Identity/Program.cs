@@ -18,7 +18,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 if (builder.Environment.IsProduction())
 {
-    builder.WebHost.UseUrls("https://localhost:5015");
+    builder.WebHost.UseUrls("http://localhost:5017");
 }
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 

@@ -15,7 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 if (builder.Environment.IsProduction())
 {
-    builder.WebHost.UseUrls("https://localhost:5014");
+    builder.WebHost.UseUrls("http://localhost:5014");
 }
 
 builder.Services.AddDbContext<MeiContext>(options =>
