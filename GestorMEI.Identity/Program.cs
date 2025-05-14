@@ -108,10 +108,12 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 
 builder.Services.AddControllers();
 
-builder.Services.AddDataProtection()
-    .PersistKeysToFileSystem(new DirectoryInfo("/shared/keys"))
-    .SetApplicationName("SharedGestorMEI");
-
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddDataProtection()
+        .PersistKeysToFileSystem(new DirectoryInfo("/shared/keys"))
+        .SetApplicationName("SharedGestorMEI");
+}
 builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<IDBInitializer, DBInitializer>();
