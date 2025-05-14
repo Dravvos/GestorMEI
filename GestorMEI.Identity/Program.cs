@@ -16,10 +16,6 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-if (builder.Environment.IsProduction())
-{
-    builder.WebHost.UseUrls("http://localhost:5017");
-}
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 
 var supportedCultures = new[] { "pt" };
@@ -28,7 +24,6 @@ var localizationOptions = new RequestLocalizationOptions()
     .SetDefaultCulture(supportedCultures[0])
     .AddSupportedCultures(supportedCultures)
     .AddSupportedUICultures(supportedCultures);
-
 
 
 builder.Services.AddDbContext<PostgresContext>(options =>
@@ -113,6 +108,10 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddControllers();
 
 builder.Services.AddAuthorization();
+
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo("/shared/keys"))
+    .SetApplicationName("SharedGestorMEI");
 
 builder.Services.AddScoped<IDBInitializer, DBInitializer>();
 builder.Services.AddAntiforgery(options =>
