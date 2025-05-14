@@ -58,7 +58,7 @@ jobs:
         username: ${{secrets.VM_USERNAME}}
         password: ${{secrets.VM_PASSWORD}}
         script: |
-          echo "${{ secrets.VM_PASSWORD }}" | sudo -S systemctl restart MEI.service
+          echo "${{ secrets.VM_PASSWORD }}" | sudo -S systemctl restart MEI.API.service
           echo "${{ secrets.VM_PASSWORD }}" | sudo -S systemctl restart MEI.Identity.service
       env:
         VM_PASSWORD: ${{ secrets.VM_PASSWORD }}
