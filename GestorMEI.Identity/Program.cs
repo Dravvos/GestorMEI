@@ -127,11 +127,23 @@ app.UseRequestLocalization(localizationOptions);
 
 app.UseAntiforgery();
 
-app.UseCors(builder =>
-    builder.WithOrigins("http://localhost:5173")
+if (app.Environment.IsDevelopment())
+{
+    app.UseCors(builder =>
+        builder.WithOrigins("http://localhost:5173")
+               .AllowAnyHeader()
+               .AllowAnyMethod()
+               .AllowCredentials());
+}
+else
+{
+    app.UseCors(builder =>
+    builder.AllowAnyOrigin()
            .AllowAnyHeader()
            .AllowAnyMethod()
            .AllowCredentials());
+}
+
 
 using var scope = app.Services.CreateScope();
 var initializer = scope.ServiceProvider.GetService<IDBInitializer>();
