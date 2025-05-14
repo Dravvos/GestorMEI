@@ -13,8 +13,18 @@
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
-      "launchUrl": "weatherforecast",
-      "applicationUrl": "http://localhost:5222",
+      "launchUrl": "swagger",
+      "applicationUrl": "http://localhost:5015",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "MEICaixa.Identity": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "launchUrl": "swagger",
+      "applicationUrl": "https://localhost:7176;http://localhost:5015",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
@@ -23,8 +33,8 @@
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
-      "launchUrl": "weatherforecast",
-      "applicationUrl": "https://localhost:7176;http://localhost:5222",
+      "launchUrl": "swagger",
+      "applicationUrl": "https://localhost:7176;http://localhost:5015",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
