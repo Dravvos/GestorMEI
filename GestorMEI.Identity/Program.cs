@@ -138,7 +138,7 @@ if (app.Environment.IsDevelopment())
 else
 {
     app.UseCors(builder =>
-    builder.AllowAnyOrigin()
+    builder.WithOrigins("https://www.danieloliveira.net.br/MEICaixa/")
            .AllowAnyHeader()
            .AllowAnyMethod()
            .AllowCredentials());
