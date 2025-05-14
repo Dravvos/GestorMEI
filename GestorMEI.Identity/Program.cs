@@ -36,39 +36,6 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddDefaultTokenProviders()
     .AddErrorDescriber<LocalizedIdentityErrorDescriber>();
 
-
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-
-        ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
-        ValidAudience = builder.Configuration["JwtSettings:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Secret"]!))
-    };
-    options.Events = new JwtBearerEvents
-    {
-        OnMessageReceived = context =>
-        {
-            if (context.Request.Cookies.TryGetValue("AuthToken", out var token))
-            {
-                context.Token = token;
-                
-            }
-            return Task.CompletedTask;
-        }
-    };
-});
-
 if (builder.Environment.IsProduction())
 {
     builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -124,8 +91,6 @@ var app = builder.Build();
 app.UseMiddleware<CustomMiddleware>();
 app.UseRequestLocalization(localizationOptions);
 
-app.UseAntiforgery();
-
 if (app.Environment.IsDevelopment())
 {
     app.UseCors(builder =>
@@ -137,7 +102,7 @@ if (app.Environment.IsDevelopment())
 else
 {
     app.UseCors(builder =>
-    builder.WithOrigins("https://www.danieloliveira.net.br/MEICaixa/")
+    builder.WithOrigins("https://www.danieloliveira.net.br")
            .AllowAnyHeader()
            .AllowAnyMethod()
            .AllowCredentials());
@@ -145,15 +110,12 @@ else
 
 
 using var scope = app.Services.CreateScope();
-var initializer = scope.ServiceProvider.GetService<IDBInitializer>();
+var initializer = scope.ServiceProvider.GetRequiredService<IDBInitializer>();
+initializer.Initialize();
 
 app.UseHttpsRedirection();
-
 app.UseAuthentication();
 app.UseAuthorization();
-initializer.Initialize();
+
 app.MapControllers();
-var services = scope.ServiceProvider;
-var context = services.GetRequiredService<PostgresContext>();
-context.Database.Migrate();
 app.Run();

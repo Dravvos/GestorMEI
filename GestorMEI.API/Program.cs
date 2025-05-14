@@ -15,7 +15,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 if (builder.Environment.IsProduction())
 {
-    builder.WebHost.UseUrls("http://localhost:5014");
+    builder.WebHost.ConfigureKestrel(options =>
+    {
+        options.ListenLocalhost(5014);
+    });
 }
 
 builder.Services.AddDbContext<MeiContext>(options =>
@@ -87,7 +90,7 @@ else
     {
         cors.AllowAnyHeader();
         cors.AllowAnyMethod();
-        cors.AllowAnyOrigin();
+        cors.WithOrigins("https://www.danieloliveira.net.br");
         cors.AllowCredentials();
     });
 }
