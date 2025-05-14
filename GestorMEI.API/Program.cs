@@ -66,12 +66,8 @@ var app = builder.Build();
 
 app.UseMiddleware<CustomMiddleware>();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-//app.UseAntiforgery();
+app.UseSwagger();
+app.UseSwaggerUI();
 
 if (app.Environment.IsDevelopment())
 {
@@ -88,6 +84,7 @@ else
         cors.AllowAnyHeader();
         cors.AllowAnyMethod();
         cors.AllowAnyOrigin();
+        cors.AllowCredentials();
     });
 }
 
