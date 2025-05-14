@@ -122,7 +122,7 @@ builder.Services.AddAntiforgery(options =>
 
 
 var app = builder.Build();
-
+app.UseMiddleware<CustomMiddleware>();
 app.UseRequestLocalization(localizationOptions);
 
 app.UseAntiforgery();
