@@ -71,11 +71,24 @@ if (app.Environment.IsDevelopment())
 }
 //app.UseAntiforgery();
 
-app.UseCors(builder =>
-    builder.WithOrigins("http://localhost:5173","https://localhost:44327")
-           .AllowAnyHeader()
-           .AllowAnyMethod()
-           .AllowCredentials());
+if (app.Environment.IsDevelopment())
+{
+    app.UseCors(builder =>
+        builder.WithOrigins("http://localhost:5173", "https://localhost:44327")
+               .AllowAnyHeader()
+               .AllowAnyMethod()
+               .AllowCredentials());
+}
+else
+{
+    app.UseCors(cors =>
+    {
+        cors.AllowAnyHeader();
+        cors.AllowAnyMethod();
+        cors.AllowAnyOrigin();
+    });
+}
+
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
