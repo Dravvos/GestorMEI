@@ -13,12 +13,16 @@ using GestorMEI.API;
 
 var builder = WebApplication.CreateBuilder(args);
 
+if (builder.Environment.IsProduction())
+{
+    builder.WebHost.UseUrls("https://localhost:5014");
+}
+
 builder.Services.AddDbContext<MeiContext>(options =>
 {
     var connection = builder.Configuration["MEIConn"];
     options.UseNpgsql(connection);
 });
-
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
