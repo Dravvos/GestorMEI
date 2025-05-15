@@ -41,19 +41,19 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddErrorDescriber<LocalizedIdentityErrorDescriber>();
 
 
-var jwtSecret = builder.Configuration["JwtSettings:Secret"];
-var issuer = builder.Configuration["JwtSettings:Issuer"];
-var audience = builder.Configuration["JwtSettings:Audience"];
+var jwtSecret = builder.Configuration.GetSection("JwtSettings:Secret");
+var issuer = builder.Configuration.GetSection("JwtSettings:Issuer");
+var audience = builder.Configuration.GetSection("JwtSettings:Audience");
 
-if (string.IsNullOrEmpty(jwtSecret))
+if (string.IsNullOrEmpty(jwtSecret.Value))
 {
     throw new InvalidOperationException("JWT SECRET IS NOT SET");
 }
-if (string.IsNullOrEmpty(issuer))
+if (string.IsNullOrEmpty(issuer.Value))
 {
     throw new InvalidOperationException("JWT ISSUER IS NOT SET");
 }
-if (string.IsNullOrEmpty(audience))
+if (string.IsNullOrEmpty(audience.Value))
 {
     throw new InvalidOperationException("JWT AUDIENCE IS NOT SET");
 }
@@ -73,9 +73,9 @@ builder.Services.AddAuthentication(options =>
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
 
-        ValidIssuer = issuer,
-        ValidAudience = audience,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret))
+        ValidIssuer = issuer.Value,
+        ValidAudience = audience.Value,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret.Value))
     };
     options.Events = new JwtBearerEvents
     {
