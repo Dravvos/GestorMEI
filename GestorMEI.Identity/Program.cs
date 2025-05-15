@@ -14,14 +14,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 
-if (builder.Environment.IsProduction())
-{
-    builder.WebHost.ConfigureKestrel(options =>
-    {
-        options.ListenLocalhost(5017);
-    });
-}
-
 var supportedCultures = new[] { "pt" };
 
 var localizationOptions = new RequestLocalizationOptions()
@@ -93,16 +85,6 @@ builder.Services.AddAuthentication(options =>
 
 if (builder.Environment.IsProduction())
 {
-    builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-        .AddCookie(options => {
-            options.Cookie.Name = "AuthToken";
-            options.Cookie.HttpOnly = true;
-            options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // HTTPS only
-            options.Cookie.SameSite = SameSiteMode.Strict; // or lax
-            options.ExpireTimeSpan = TimeSpan.FromHours(3);
-            options.Cookie.Domain = "www.danieloliveira.net.br";
-        });
-
     builder.Services.AddCors(options =>
     {
         options.AddPolicy("AllowAll", builder =>
@@ -113,6 +95,16 @@ if (builder.Environment.IsProduction())
                    .AllowCredentials();
         });
     });
+
+    builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+        .AddCookie(options => {
+            options.Cookie.Name = "AuthToken";
+            options.Cookie.HttpOnly = true;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // HTTPS only
+            options.Cookie.SameSite = SameSiteMode.Lax; // or lax
+            options.ExpireTimeSpan = TimeSpan.FromHours(3);
+        });
+   
 }
 else
 {  
@@ -142,11 +134,11 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddControllers();
 
 builder.Services.AddAuthorization();
-
+/*
 builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo("/shared/keys"))
     .SetApplicationName("SharedGestorMEI");
-
+*/
 builder.Services.AddScoped<IDBInitializer, DBInitializer>();
 builder.Services.AddAntiforgery(options =>
 {
@@ -170,7 +162,6 @@ if (app.Environment.IsDevelopment())
 }
 else
 {
-    app.UseHsts();
     app.UseCors("AllowAll");
 }
 
