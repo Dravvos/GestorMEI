@@ -24,7 +24,7 @@ if (builder.Environment.IsProduction())
 
 builder.Services.AddDbContext<MeiContext>(options =>
 {
-    var connection = builder.Configuration["MEIConn"];
+    var connection = Environment.GetEnvironmentVariable("MEIConn");
     options.UseNpgsql(connection);
 });
 

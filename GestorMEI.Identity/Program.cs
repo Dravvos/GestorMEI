@@ -47,15 +47,15 @@ var audience = builder.Configuration["JwtSettings:Audience"];
 
 if (string.IsNullOrEmpty(jwtSecret))
 {
-    throw new InvalidOperationException("JWT Secret is not set");
+    throw new InvalidOperationException("JWT SECRET IS NOT SET");
 }
 if (string.IsNullOrEmpty(issuer))
 {
-    throw new InvalidOperationException("JWT Issuer is not set");
+    throw new InvalidOperationException("JWT ISSUER IS NOT SET");
 }
 if (string.IsNullOrEmpty(audience))
 {
-    throw new InvalidOperationException("JWT Audience is not set");
+    throw new InvalidOperationException("JWT AUDIENCE IS NOT SET");
 }
 
 
