@@ -11,7 +11,7 @@
 
         public async Task InvokeAsync(HttpContext context)
         {
-            var isDevelopment = context.RequestServices.GetService<IHostEnvironment>().IsDevelopment();
+            var isDevelopment = context.RequestServices.GetRequiredService<IHostEnvironment>().IsDevelopment();
 
             if (isDevelopment)
             {
