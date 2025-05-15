@@ -142,8 +142,6 @@ builder.Services.AddAntiforgery(options =>
 });
 
 var app = builder.Build();
-app.UseAntiforgery();
-
 
 app.UseMiddleware<CustomMiddleware>();
 app.UseRequestLocalization(localizationOptions);

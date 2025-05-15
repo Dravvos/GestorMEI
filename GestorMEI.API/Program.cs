@@ -50,8 +50,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             }
         };
     });
-builder.Services.AddControllers();
 
+builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -76,25 +76,12 @@ app.UseMiddleware<CustomMiddleware>();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-if (app.Environment.IsDevelopment())
+app.UseCors(cors =>
 {
-    app.UseCors(builder =>
-        builder.WithOrigins("http://localhost:5173", "https://localhost:44327")
-               .AllowAnyHeader()
-               .AllowAnyMethod()
-               .AllowCredentials());
-}
-else
-{
-    app.UseCors(cors =>
-    {
-        cors.AllowAnyHeader();
-        cors.AllowAnyMethod();
-        cors.WithOrigins("https://www.danieloliveira.net.br");
-        cors.AllowCredentials();
-    });
-}
-
+    cors.AllowAnyHeader();
+    cors.AllowAnyMethod();
+    cors.AllowAnyOrigin();
+});
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
