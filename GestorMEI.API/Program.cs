@@ -28,6 +28,13 @@ builder.Services.AddDbContext<MeiContext>(options =>
     options.UseNpgsql(connection);
 });
 
+var jwtSecret = builder.Configuration.GetSection("JwtSettings:Secret");
+
+if (string.IsNullOrEmpty(jwtSecret.Value))
+{
+    throw new InvalidOperationException("JWT SECRET IS NOT SET");
+}
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -36,7 +43,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuer = false,
             ValidateAudience = false,
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Secret"]!)),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret.Value)),
             ValidateLifetime = true
         };
         options.Events = new JwtBearerEvents
