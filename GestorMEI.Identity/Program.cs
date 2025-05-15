@@ -102,9 +102,7 @@ if (builder.Environment.IsProduction())
             options.ExpireTimeSpan = TimeSpan.FromHours(3);
             options.Cookie.Domain = "www.danieloliveira.net.br";
         });
-}
-else
-{
+
     builder.Services.AddCors(options =>
     {
         options.AddPolicy("AllowAll", builder =>
@@ -115,6 +113,9 @@ else
                    .AllowCredentials();
         });
     });
+}
+else
+{  
 
     builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options => {
