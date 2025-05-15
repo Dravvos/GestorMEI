@@ -105,6 +105,17 @@ if (builder.Environment.IsProduction())
 }
 else
 {
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowAll", builder =>
+        {
+            builder.WithOrigins("https://www.danieloliveira.net.br/MEICaixa")
+                   .AllowAnyMethod()
+                   .AllowAnyHeader()
+                   .AllowCredentials();
+        });
+    });
+
     builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options => {
         options.Cookie.Name = "AuthToken";
@@ -148,19 +159,18 @@ app.UseRequestLocalization(localizationOptions);
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseCors(builder =>
-        builder.WithOrigins("http://localhost:5173")
-               .AllowAnyHeader()
-               .AllowAnyMethod()
-               .AllowCredentials());
+    app.UseCors(cors =>
+    {
+        cors.AllowAnyHeader();
+        cors.AllowAnyMethod();
+        cors.AllowAnyOrigin();
+        cors.AllowCredentials();
+    });
 }
 else
 {
-    app.UseCors(builder =>
-    builder.WithOrigins("https://www.danieloliveira.net.br")
-           .AllowAnyHeader()
-           .AllowAnyMethod()
-           .AllowCredentials());
+    app.UseHsts();
+    app.UseCors("AllowAll");
 }
 
 
@@ -168,6 +178,7 @@ using var scope = app.Services.CreateScope();
 var initializer = scope.ServiceProvider.GetRequiredService<IDBInitializer>();
 initializer.Initialize();
 
+app.UseRouting();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
