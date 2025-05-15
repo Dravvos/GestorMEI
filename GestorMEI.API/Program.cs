@@ -14,14 +14,6 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-if (builder.Environment.IsProduction())
-{
-    builder.WebHost.ConfigureKestrel(options =>
-    {
-        options.ListenLocalhost(5014);
-    });
-}
-
 builder.Services.AddDbContext<MeiContext>(options =>
 {
     var connection = Environment.GetEnvironmentVariable("MEIConn");
