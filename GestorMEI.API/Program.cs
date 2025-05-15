@@ -83,6 +83,19 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+if (builder.Environment.IsProduction())
+{
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowAll", builder =>
+        {
+            builder.WithOrigins("https://www.danieloliveira.net.br/MEICaixa", "https://danieloliveira.net.br/MEICaixa")
+                   .AllowAnyMethod()
+                   .AllowAnyHeader()
+                   .AllowCredentials();
+        });
+    });
+}
 
 builder.Services.AddScoped<IAssinaturaRepository, AssinaturaRepository>();
 builder.Services.AddScoped<IEmpresaRepository, EmpresaRepository>();
@@ -104,14 +117,20 @@ app.UseMiddleware<CustomMiddleware>();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.UseCors(cors =>
+if (app.Environment.IsDevelopment())
 {
-    cors.AllowAnyHeader();
-    cors.AllowAnyMethod();
-    cors.AllowAnyOrigin();
-});
-
-app.UseHttpsRedirection();
+    app.UseCors(cors =>
+    {
+        cors.AllowAnyHeader();
+        cors.AllowAnyMethod();
+        cors.AllowAnyOrigin();
+    });
+}
+else
+{
+    app.UseCors("AllowAll");
+}
+    app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
