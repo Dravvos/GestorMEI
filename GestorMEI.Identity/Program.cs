@@ -3,20 +3,21 @@ using GestorMEI.Identity.Initializer;
 using GestorMEI.Identity.Models;
 using GestorMEI.Identity.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
-using System.Globalization;
-using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+
+if (builder.Environment.IsProduction())
+{
+    builder.WebHost.ConfigureKestrel(options =>
+    {
+        options.ListenLocalhost(5017);
+    });
+}
 
 var supportedCultures = new[] { "pt" };
 
