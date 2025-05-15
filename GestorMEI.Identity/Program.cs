@@ -3,9 +3,12 @@ using GestorMEI.Identity.Initializer;
 using GestorMEI.Identity.Models;
 using GestorMEI.Identity.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,6 +39,39 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<PostgresContext>()
     .AddDefaultTokenProviders()
     .AddErrorDescriber<LocalizedIdentityErrorDescriber>();
+
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+
+        ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
+        ValidAudience = builder.Configuration["JwtSettings:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Secret"]!))
+    };
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            if (context.Request.Cookies.TryGetValue("AuthToken", out var token))
+            {
+                context.Token = token;
+
+            }
+            return Task.CompletedTask;
+        }
+    };
+});
 
 if (builder.Environment.IsProduction())
 {
@@ -87,8 +123,10 @@ builder.Services.AddAntiforgery(options =>
     options.Cookie.Name = "X-CSRF-TOKEN";
 });
 
-
 var app = builder.Build();
+app.UseAntiforgery();
+
+
 app.UseMiddleware<CustomMiddleware>();
 app.UseRequestLocalization(localizationOptions);
 
