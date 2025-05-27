@@ -89,7 +89,7 @@ if (builder.Environment.IsProduction())
     {
         options.AddPolicy("AllowAll", builder =>
         {
-            builder.WithOrigins("https://www.danieloliveira.net.br/MEICaixa", "https://danieloliveira.net.br/MEICaixa")
+            builder.WithOrigins("https://www.meicaixa.com.br", "https://meicaixa.com.br")
                    .AllowAnyMethod()
                    .AllowAnyHeader()
                    .AllowCredentials();
@@ -123,14 +123,15 @@ if (app.Environment.IsDevelopment())
     {
         cors.AllowAnyHeader();
         cors.AllowAnyMethod();
-        cors.AllowAnyOrigin();
+        cors.WithOrigins("http://localhost:5173", "https://localhost:44327");
+        cors.AllowCredentials();
     });
 }
 else
 {
     app.UseCors("AllowAll");
 }
-    app.UseHttpsRedirection();
+app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
