@@ -238,7 +238,7 @@ namespace GestorMEI.Identity.Controllers
             if (isDevelopment)
                 url = $"http://localhost:5173/ResetSenha/{encodedToken}";
             else
-                url = $"https://www.danieloliveira.net.br/GestorMEI.Web/ResetSenha/{encodedToken}";
+                url = $"https://www.meicaixa.com.br/ResetSenha/{encodedToken}";
 
             mail.Subject = "Recuperação de Senha";
             mail.Body = $"\t<h1>Olá,</h1> <br /> <br /> <br /> <br /> <br />Recebemos uma solicitação para redefinir a senha da conta GestorMEI associada ao e-mail {user.Email}.<br /> <br /> <br /> <br /> <br />" +
