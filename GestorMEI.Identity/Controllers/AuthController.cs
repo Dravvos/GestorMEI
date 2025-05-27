@@ -216,45 +216,65 @@ namespace GestorMEI.Identity.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> SendResetEmail(string username)
         {
-            var user = await _userManager.FindByNameAsync(username);
-            if (user == null)
+            try
             {
-                user = await _userManager.FindByEmailAsync(username);
+                var user = await _userManager.FindByNameAsync(username);
                 if (user == null)
-                    return NoContent();
+                {
+                    user = await _userManager.FindByEmailAsync(username);
+                    if (user == null)
+                        return NoContent();
+                }
+
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+                var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
+
+                MailMessage mail = new MailMessage();
+                mail.From = new MailAddress("no-reply@meicaixa.com.br");
+                mail.To.Add(user.Email!);
+
+                var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+                var isDevelopment = environment == Environments.Development;
+                var url = "";
+                if (isDevelopment)
+                    url = $"http://localhost:5173/ResetSenha/{encodedToken}";
+                else
+                    url = $"https://www.meicaixa.com.br/ResetSenha/{encodedToken}";
+
+                mail.Subject = "Recuperação de Senha";
+                mail.IsBodyHtml = true;
+
+                mail.Body = $"<body style=\"margin:0; padding:0; font-family:Arial, sans-serif; background-color:#f9f9f9;\"> " +
+                    $" <table align=\"center\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:600px; margin:auto; background-color:#ffffff; border:1px solid #ddd;\">    <tr> " +
+                    $"     <td style=\"background-color:rgb(138, 43, 226); padding:20px; text-align:center; color:white;\"> " +
+                    $"       <h1 style=\"margin:0;\">Recupere sua senha</h1>      " +
+                    $"</td>    " +
+                    $"</tr> " +
+                    $"   <tr>      " +
+                    $"<td style=\"padding:30px; color:#333;\">        " +
+                    $"<p>Olá,</p> " +
+                    $"<p>Recebemos uma solicitação para redefinir a sua senha. Clique no botão abaixo para continuar com o processo:</p> " +
+                    $"<p style=\"text-align:center; margin: 30px 0;\">" +
+                    $"<a href=\"{url}\" style=\"background-color:rgb(138, 43, 226); color:white; text-decoration:none; padding:12px 24px; border-radius:5px; display:inline-block; font-weight:bold;\">Redefinir senha </a>        </p>        <p>Se você não solicitou a redefinição de senha, pode ignorar este e-mail.</p>        <p>Obrigado,<br>A equipe do MEICaixa</p>      </td>    </tr>    <tr>      <td style=\"background-color:#f1f1f1; text-align:center; padding:15px; font-size:12px; color:#777;\">        © {DateTime.Now.Year} MEICaixa. Todos os direitos reservados.      </td>    </tr>  </table></body>";
+
+                var client = new SmtpClient("smtp.hostinger.com", 587);
+                client.EnableSsl = true;
+                client.UseDefaultCredentials = false;
+                client.Credentials = new NetworkCredential("no-reply@meicaixa.com.br", "H:de{DC7M(h&H]Pc");
+                client.Send(mail);
+                client.Dispose();
+                mail.Dispose();
+
+                return Ok();
             }
+            catch (Exception ex)
+            {
+                if (ex.InnerException != null)
+                    return StatusCode(500, ex.InnerException.Message);
 
-            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-
-            var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
-
-            MailMessage mail = new MailMessage();
-            mail.From = new MailAddress("daniddias53@gmail.com");
-            mail.To.Add(user.Email!);
-
-            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-            var isDevelopment = environment == Environments.Development;
-            var url = "";
-            if (isDevelopment)
-                url = $"http://localhost:5173/ResetSenha/{encodedToken}";
-            else
-                url = $"https://www.meicaixa.com.br/ResetSenha/{encodedToken}";
-
-            mail.Subject = "Recuperação de Senha";
-            mail.Body = $"\t<h1>Olá,</h1> <br /> <br /> <br /> <br /> <br />Recebemos uma solicitação para redefinir a senha da conta GestorMEI associada ao e-mail {user.Email}.<br /> <br /> <br /> <br /> <br />" +
-                $"<h4>Redefina sua senha: {url}</h4> <br /> <br /> <br /> <br /> <br />Se você não fez essa solicitação ou se está tendo problemas para fazer login, entre em contato. " +
-                $"<p>Nenhuma alteração foi feita na sua conta</p>.<br /> <br /> <br /> <br /> <br /> – <p>Equipe da GestorMEI</p>";
-            mail.IsBodyHtml = true;
-            var client = new SmtpClient("smtp.gmail.com", 587);
-            client.EnableSsl = true;
-            client.Timeout = 50000;
-            client.UseDefaultCredentials = false;
-            client.Credentials = new NetworkCredential("daniddias53@gmail.com", "muiergmbdnffdpyj");
-            client.Send(mail);
-            client.Dispose();
-            mail.Dispose();
-
-            return Ok();
+                return StatusCode(500, ex.Message);
+            }
         }
 
         [HttpPut]
