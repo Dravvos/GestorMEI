@@ -46,8 +46,7 @@ namespace GestorMEI.Identity.Controllers
             {
                 return BadRequest("Email already in use");
             }
-
-            var result = await _userManager.CreateAsync(new ApplicationUser { Nome = dto.Nome, Sobrenome = dto.Sobrenome, Email = dto.Email, AceitouOsTermosDeUsoPrivacidade = true }, dto.Password);
+            var result = await _userManager.CreateAsync(new ApplicationUser { Nome = dto.Nome, Sobrenome = dto.Sobrenome, Email = dto.Email, AceitouOsTermosDeUsoPrivacidade = true, UserName = dto.Email }, dto.Password);
             if (result.Succeeded)
             {
 
