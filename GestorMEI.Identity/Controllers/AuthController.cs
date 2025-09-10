@@ -50,7 +50,7 @@ namespace GestorMEI.Identity.Controllers
             var result = await _userManager.CreateAsync(new ApplicationUser { Nome = dto.Nome, Sobrenome = dto.Sobrenome, Email = dto.Email, AceitouOsTermosDeUsoPrivacidade = true }, dto.Password);
             if (result.Succeeded)
             {
-                
+
                 await _userManager.AddToRoleAsync(user, IdentityConfiguration.Client);
                 await _userManager.AddClaimsAsync(user, new Claim[]
               {
@@ -59,6 +59,9 @@ namespace GestorMEI.Identity.Controllers
                     new Claim(ClaimTypes.Surname,dto.Sobrenome),
                     new Claim(ClaimTypes.Role, IdentityConfiguration.Client)
               });
+                user = await _userManager.FindByEmailAsync(dto.Email);
+                user.EmailConfirmed = true;
+                await _userManager.UpdateAsync(user);
                 return Created();
             }
             else
