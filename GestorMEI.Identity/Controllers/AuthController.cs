@@ -49,7 +49,7 @@ namespace GestorMEI.Identity.Controllers
             var result = await _userManager.CreateAsync(new ApplicationUser { Nome = dto.Nome, Sobrenome = dto.Sobrenome, Email = dto.Email, AceitouOsTermosDeUsoPrivacidade = true, UserName = dto.Email }, dto.Password);
             if (result.Succeeded)
             {
-
+                user = await _userManager.FindByEmailAsync(dto.Email);
                 await _userManager.AddToRoleAsync(user, IdentityConfiguration.Client);
                 await _userManager.AddClaimsAsync(user, new Claim[]
               {
@@ -58,9 +58,9 @@ namespace GestorMEI.Identity.Controllers
                     new Claim(ClaimTypes.Surname,dto.Sobrenome),
                     new Claim(ClaimTypes.Role, IdentityConfiguration.Client)
               });
-                user = await _userManager.FindByEmailAsync(dto.Email);
-                user.EmailConfirmed = true;
-                await _userManager.UpdateAsync(user);
+
+                await SendConfirmationEmail(dto.Email);
+
                 return Created();
             }
             else
@@ -279,6 +279,82 @@ namespace GestorMEI.Identity.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
+        [HttpGet]
+        public async Task SendConfirmationEmail(string username)
+        {
+            var user = await _userManager.FindByNameAsync(username);
+            if (user == null)
+            {
+                user = await _userManager.FindByEmailAsync(username);
+                if (user == null)
+                    return;
+            }
+
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+
+            var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
+
+            MailMessage mail = new MailMessage();
+            mail.From = new MailAddress("no-reply@meicaixa.com.br");
+            mail.To.Add(user.Email!);
+
+            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            var isDevelopment = environment == Environments.Development;
+            var url = "";
+            if (isDevelopment)
+                url = $"http://localhost:5173/ConfirmarEmail/{encodedToken}";
+            else
+                url = $"https://www.meicaixa.com.br/ConfirmarEmail/{encodedToken}";
+
+            mail.Subject = "Confirmação de Email";
+            mail.IsBodyHtml = true;
+
+            mail.Body = $"<body style=\"margin:0; padding:0; font-family:Arial, sans-serif; background-color:#f9f9f9;\"> " +
+                $" <table align=\"center\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:600px; margin:auto; background-color:#ffffff; border:1px solid #ddd;\">    <tr> " +
+                $"     <td style=\"background-color:rgb(138, 43, 226); padding:20px; text-align:center; color:white;\"> " +
+                $"       <h1 style=\"margin:0;\">Confirme seu email</h1>      " +
+                $"</td>    " +
+                $"</tr> " +
+                $"   <tr>      " +
+                $"<td style=\"padding:30px; color:#333;\">        " +
+                $"<p>Olá,</p> " +
+                $"<p>Agradecemos muito por criar sua conta em nossa plataforma. Clique no botão abaixo para confirmar seu email:</p> " +
+                $"<p style=\"text-align:center; margin: 30px 0;\">" +
+                $"<a href=\"{url}\" style=\"background-color:rgb(138, 43, 226); color:white; text-decoration:none; padding:12px 24px; border-radius:5px; display:inline-block; font-weight:bold;\">Confirmar Email </a>        </p>        <p>Obrigado,<br>A equipe do MEICaixa</p>      </td>    </tr>    <tr>      <td style=\"background-color:#f1f1f1; text-align:center; padding:15px; font-size:12px; color:#777;\">        © {DateTime.Now.Year} MEICaixa. Todos os direitos reservados.      </td>    </tr>  </table></body>";
+
+            var client = new SmtpClient("smtp.hostinger.com", 587);
+            client.EnableSsl = true;
+            client.UseDefaultCredentials = false;
+            client.Credentials = new NetworkCredential("no-reply@meicaixa.com.br", "H:de{DC7M(h&H]Pc");
+            client.Send(mail);
+            client.Dispose();
+            mail.Dispose();
+
+        }
+
+
+        [HttpPut]
+        [AllowAnonymous]
+        public async Task<IActionResult> ConfirmEmail(string email, string token)
+        {
+            if (string.IsNullOrEmpty(email))
+                return BadRequest("Preencha o email");
+
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                user = await _userManager.FindByNameAsync(email);
+                if (user == null)
+                    return NoContent();
+            }
+            var decodedToken = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(token));
+            var result = await _userManager.ConfirmEmailAsync(user, decodedToken);
+            if (result.Succeeded)
+                return Ok();
+            return StatusCode(500, result.Errors);
+        }
+
 
         [HttpPut]
         [AllowAnonymous]
