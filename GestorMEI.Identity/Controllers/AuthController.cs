@@ -39,9 +39,10 @@ namespace GestorMEI.Identity.Controllers
 
         [HttpPost]
         [AllowAnonymous]
-        public async Task<IActionResult> CreateAccount([FromBody] SignUpDTO dto, string returnUrl)
+        public async Task<IActionResult> CreateAccount([FromBody] SignUpDTO dto)
         {
-            if (await _userManager.FindByEmailAsync(dto.Email) != null)
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            if (user != null)
             {
                 return BadRequest("Email already in use");
             }
@@ -49,7 +50,7 @@ namespace GestorMEI.Identity.Controllers
             var result = await _userManager.CreateAsync(new ApplicationUser { Nome = dto.Nome, Sobrenome = dto.Sobrenome, Email = dto.Email, AceitouOsTermosDeUsoPrivacidade = true }, dto.Password);
             if (result.Succeeded)
             {
-                var user = await _userManager.FindByEmailAsync(dto.Email);
+                
                 await _userManager.AddToRoleAsync(user, IdentityConfiguration.Client);
                 await _userManager.AddClaimsAsync(user, new Claim[]
               {
