@@ -163,6 +163,8 @@ namespace GestorMEI.API.Controllers
         [HttpPost("Process/{tipoAssinaturaId}")]
         public async Task<IActionResult> ProcessarPagamento([FromBody] MercadoPagoDTO cardForm, Guid tipoAssinaturaId)
         {
+            if (cardForm == null || cardForm.FormData == null)
+                return UnprocessableEntity("Dados do pagamento inválidos");
             MercadoPagoConfig.AccessToken = "TEST-7537308538793161-041922-98035968fe22dd4906d91066126786e7-706381060";
 
             var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
@@ -187,6 +189,16 @@ namespace GestorMEI.API.Controllers
 
                 requestOptions.CustomHeaders.Add("x-idempotency-key", jti);
                 var paymentRequest = new PaymentCreateRequest();
+
+                var tipoAssinatura = await _tabelaGeralItemService.GetByIdAsync(tipoAssinaturaId);
+                if (tipoAssinatura.Sigla == "ESS")
+                    cardForm.FormData.Transaction_Amount = 49M;
+                else if (tipoAssinatura.Sigla == "AVNC")
+                    cardForm.FormData.Transaction_Amount = 99M;
+                else if(tipoAssinatura.Sigla == "PRO")
+                    cardForm.FormData.Transaction_Amount = 179M;
+                else
+                    return UnprocessableEntity("Tipo de assinatura inválida");
 
                 if (cardForm.PaymentType == "bank_transfer")
                 {
