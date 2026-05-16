@@ -1,16 +1,17 @@
+using GestorMEI.API;
 using GestorMEI.BLL.Repositories;
 using GestorMEI.BLL.Repositories.Interfaces;
-using GestorMEI.BLL.Services.Interfaces;
 using GestorMEI.BLL.Services;
+using GestorMEI.BLL.Services.Interfaces;
 using GestorMEI.Data;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using System.Text;
-using GestorMEI.API;
 using Microsoft.OpenApi.Models;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -113,6 +114,11 @@ builder.Services.AddScoped<IRelatorioService, RelatorioService>();
 var app = builder.Build();
 
 app.UseMiddleware<CustomMiddleware>();
+
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
 
 app.UseSwagger();
 app.UseSwaggerUI();
