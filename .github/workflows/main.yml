@@ -36,7 +36,7 @@ jobs:
       with:
         host: ${{ secrets.VM_HOST }}
         username: ${{ secrets.VM_USERNAME }}
-        password: ${{ secrets.VM_PASSWORD }}
+        key: ${{ secrets.VM_SSH_KEY }}
         source: './GestorMEI/GestorMEI.API/publish'
         target: '/var/www/html'
         port: 22
@@ -46,7 +46,7 @@ jobs:
       with:
         host: ${{ secrets.VM_HOST }}
         username: ${{ secrets.VM_USERNAME }}
-        password: ${{ secrets.VM_PASSWORD }}
+        key: ${{ secrets.VM_SSH_KEY }}
         source: './GestorMEI/GestorMEI.Identity/publish'
         target: '/var/www/html'
         port: 22
@@ -56,9 +56,7 @@ jobs:
       with:
         host: ${{secrets.VM_HOST}}
         username: ${{secrets.VM_USERNAME}}
-        password: ${{secrets.VM_PASSWORD}}
+        key: ${{ secrets.VM_SSH_KEY }}
         script: |
-          echo "${{ secrets.VM_PASSWORD }}" | sudo -S systemctl restart MEI.API.service
-          echo "${{ secrets.VM_PASSWORD }}" | sudo -S systemctl restart MEI.Identity.service
-      env:
-        VM_PASSWORD: ${{ secrets.VM_PASSWORD }}
+          sudo -S systemctl restart MEI.API.service
+          sudo -S systemctl restart MEI.Identity.service
