@@ -49,7 +49,7 @@ namespace GestorMEI.BLL.Services
             await _repository.DeleteVendaAsync(id);
         }
 
-        public async Task<VendaDTO> GetVendaByIdAsync(Guid id)
+        public async Task<VendaDTO?> GetVendaByIdAsync(Guid id)
         {
             if (id == Guid.Empty)
                 throw new Exception("Id da venda não informado");
@@ -70,7 +70,7 @@ namespace GestorMEI.BLL.Services
             if (venda.Id.HasValue == false || venda.Id == Guid.Empty)
                 throw new Exception("Id da venda não informado");
 
-            if ((await _repository.GetVendaByIdAsync(venda.Id.Value)) == null)
+            if ((await _repository.VendaExist(venda.Id.Value)) == false)
                 throw new KeyNotFoundException();
 
             venda.DataAlteracao = DateTime.UtcNow.ToUniversalTime();

@@ -32,22 +32,49 @@ namespace GestorMEI.BLL.Repositories
             await con.SaveChangesAsync();
         }
 
-        public async Task<EmpresaDTO> GetEmpresaByCNPJAsync(string cnpj)
+        public async Task<bool> EmpresaExists(Guid id)
         {
-            var empresa = await con.Empresa.FirstOrDefaultAsync(x => x.CNPJ == cnpj);
+            return await con.Empresa.AsNoTracking().AnyAsync(x => x.Id == id);
+        }
+
+        public async Task<EmpresaDTO?> GetEmpresaByCNPJAsync(string cnpj)
+        {
+            var empresa = await con.Empresa.AsNoTracking().Where(x => x.CNPJ == cnpj).Select(x => new EmpresaDTO
+            {
+                Bairro = x.Bairro,
+                CEP = x.CEP,
+                Cidade = x.Cidade,
+                Complemento = x.Complemento,
+                Email = x.Email,
+                CNPJ = x.CNPJ,
+                Endereco = x.Endereco,
+                Estado = x.Estado,
+                Id = x.Id,
+                NomeFantasia = x.NomeFantasia,
+                Numero = x.Numero,
+                RazaoSocial = x.RazaoSocial,
+                Telefone = x.Telefone,
+                UsuarioId = x.UsuarioId
+            }).FirstOrDefaultAsync();
+            return empresa;
+        }
+
+        public async Task<EmpresaDTO?> GetEmpresaByIdAsync(Guid id)
+        {
+            var empresa = await con.Empresa.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
             return Map<EmpresaDTO>.Convert(empresa);
         }
 
-        public async Task<EmpresaDTO> GetEmpresaByIdAsync(Guid id)
-        {
-            var empresa = await con.Empresa.FirstOrDefaultAsync(x => x.Id == id);
-            return Map<EmpresaDTO>.Convert(empresa);
-        }
-
-        public async Task<EmpresaDTO> GetEmpresaByUsuarioIdAsync(Guid usuarioId)
+        public async Task<EmpresaDTO?> GetEmpresaByUsuarioIdAsync(Guid usuarioId)
         {
             var empresa = await con.Empresa.FirstOrDefaultAsync(x => x.UsuarioId == usuarioId);
             return Map<EmpresaDTO>.Convert(empresa);
+        }
+
+        public async Task<Guid> GetEmpresaIdByUserId(Guid userId)
+        {
+            var empresaId = await con.Empresa.AsNoTracking().Where(x => x.UsuarioId == userId).Select(x => x.Id).FirstOrDefaultAsync();
+            return empresaId;
         }
 
         public async Task<IEnumerable<EmpresaDTO>> GetEmpresasAsync()
@@ -59,7 +86,7 @@ namespace GestorMEI.BLL.Repositories
         public async Task UpdateEmpresaAsync(EmpresaDTO empresa)
         {
             var model = con.Empresa.First(x => x.Id == empresa.Id);
-            model.RazaoSocial= empresa.RazaoSocial;
+            model.RazaoSocial = empresa.RazaoSocial;
             model.CNPJ = empresa.CNPJ;
             model.Telefone = empresa.Telefone;
             model.Email = empresa.Email;
@@ -74,7 +101,7 @@ namespace GestorMEI.BLL.Repositories
             model.UsuarioId = empresa.UsuarioId;
             model.DataAlteracao = empresa.DataAlteracao;
             model.UsuarioAlteracao = empresa.UsuarioAlteracao;
-            
+
             await con.SaveChangesAsync();
         }
     }

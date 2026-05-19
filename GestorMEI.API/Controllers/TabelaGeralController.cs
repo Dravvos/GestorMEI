@@ -31,7 +31,7 @@ namespace GestorMEI.API.Controllers
             try
             {
                 var tabelaGeral = await _tabelaGeralService.GetByIdAsync(id);
-                if (tabelaGeral == null) return NotFound();
+                if (tabelaGeral == null) return Ok();
                 return Ok(tabelaGeral);
             }
             catch (Exception ex)
@@ -50,7 +50,7 @@ namespace GestorMEI.API.Controllers
             try
             {
                 var tabelaGeral = await _tabelaGeralService.GetByNomeAsync(nome);
-                if (tabelaGeral == null) return NotFound();
+                if (tabelaGeral == null) return Ok();
                 return Ok(tabelaGeral);
             }
             catch (Exception ex)
@@ -117,15 +117,15 @@ namespace GestorMEI.API.Controllers
         public async Task<IActionResult> DeleteTabelaGeral(Guid tabelaGeralId)
         {
             if (await _tabelaGeralService.GetByIdAsync(tabelaGeralId) == null)
-                return NotFound();
+                return NoContent();
             try
             {
                 await _tabelaGeralService.DeleteAsync(tabelaGeralId);
-                return Ok();
+                return NoContent();
             }
             catch (KeyNotFoundException)
             {
-                return NotFound();
+                return NoContent();
             }
             catch (Exception ex)
             {
@@ -141,7 +141,7 @@ namespace GestorMEI.API.Controllers
         public async Task<IActionResult> GetTabelaGeralItemById(Guid id)
         {
             var tabelaGeral = await _tabelaGeralItemService.GetByIdAsync(id);
-            if (tabelaGeral == null) return NotFound();
+            if (tabelaGeral == null) return Ok();
             return Ok(tabelaGeral);
         }
 
@@ -178,7 +178,7 @@ namespace GestorMEI.API.Controllers
             }
             catch (ArgumentException ex)
             {
-                return StatusCode(400, ex.Message);
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
@@ -200,7 +200,7 @@ namespace GestorMEI.API.Controllers
                 dto.UsuarioAlteracao = User.FindFirstValue(JwtRegisteredClaimNames.Name);
                 await _tabelaGeralItemService.UpdateAsync(dto);
 
-                return Ok();
+                return NoContent();
             }
             catch (ArgumentException ex)
             {
@@ -225,11 +225,11 @@ namespace GestorMEI.API.Controllers
             try
             {
                 await _tabelaGeralItemService.DeleteAsync(tabelaGeralItemId);
-                return Ok();
+                return NoContent();
             }
             catch (KeyNotFoundException)
             {
-                return NotFound();
+                return NoContent();
             }
             catch (Exception ex)
             {

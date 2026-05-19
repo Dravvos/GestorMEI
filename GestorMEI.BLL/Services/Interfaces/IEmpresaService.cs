@@ -9,9 +9,10 @@ namespace GestorMEI.BLL.Services.Interfaces
 {
     public interface IEmpresaService
     {
-        Task<EmpresaDTO> GetEmpresaByUserIdAsync(Guid usuarioId);
-        Task<EmpresaDTO> GetEmpresaByIdAsync(Guid id);
-        Task<EmpresaDTO> GetEmpresaByCNPJAsync(string cnpj);
+        Task<EmpresaDTO?> GetEmpresaByUserIdAsync(Guid usuarioId);
+        Task<Guid> GetEmpresaIdByUserIdAsync(Guid userId);
+        Task<EmpresaDTO?> GetEmpresaByIdAsync(Guid id);
+        Task<EmpresaDTO?> GetEmpresaByCNPJAsync(string cnpj);
         Task CreateEmpresaAsync(EmpresaDTO empresa);
         Task UpdateEmpresaAsync(EmpresaDTO empresa);
         Task DeleteEmpresaAsync(Guid id);

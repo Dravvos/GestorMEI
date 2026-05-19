@@ -77,7 +77,7 @@ namespace GestorMEI.API.Controllers
                     return UnprocessableEntity("Id do usuário não pode ser vazio");
                 var assinatura = await _service.GetAssinaturaByUserId(usuarioId);
                 if (assinatura == null)
-                    return NotFound();
+                    return Ok();
 
                 return Ok(assinatura);
             }
@@ -99,7 +99,7 @@ namespace GestorMEI.API.Controllers
                 if (assinatura == null)
                     return UnprocessableEntity("Assinatura não pode ser nula");
                 await _service.CreateAssinatura(assinatura);
-                return Ok();
+                return StatusCode(201, assinatura.Id);
             }
             catch (ArgumentException ex)
             {
@@ -124,7 +124,7 @@ namespace GestorMEI.API.Controllers
                 if (assinatura == null)
                     return UnprocessableEntity("Assinatura não pode ser nula");
                 await _service.UpdateAssinatura(assinatura);
-                return Ok();
+                return NoContent();
             }
             catch (ArgumentException ex)
             {
@@ -146,11 +146,11 @@ namespace GestorMEI.API.Controllers
                 if (id == Guid.Empty)
                     return UnprocessableEntity("Id da assinatura não pode ser vazio");
                 await _service.DeleteAssinatura(id);
-                return Ok();
+                return NoContent();
             }
             catch (KeyNotFoundException)
             {
-                return NotFound();
+                return NoContent();
             }
             catch (Exception ex)
             {

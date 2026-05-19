@@ -31,7 +31,7 @@ namespace GestorMEI.API.Controllers
 
                 var empresa = _service.GetEmpresaByIdAsync(id);
                 if (empresa == null)
-                    return NotFound();
+                    return Ok();
 
                 return Ok(empresa);
             }
@@ -54,7 +54,7 @@ namespace GestorMEI.API.Controllers
 
                 var empresa = _service.GetEmpresaByCNPJAsync(cnpj);
                 if (empresa == null)
-                    return NotFound();
+                    return Ok();
 
                 return Ok(empresa);
             }
@@ -86,7 +86,7 @@ namespace GestorMEI.API.Controllers
 
                 var empresa = await _service.GetEmpresaByUserIdAsync(usuarioId);
                 if (empresa == null)
-                    return NotFound();
+                    return Ok();
 
                 return Ok(empresa);
             }

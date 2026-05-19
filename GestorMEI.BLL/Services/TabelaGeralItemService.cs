@@ -34,7 +34,7 @@ namespace GestorMEI.BLL.Services
 
         public async Task DeleteAsync(Guid id)
         {
-            if ((await _tabelaGeralItemRepository.GetByIdAsync(id)) == null)
+            if ((await _tabelaGeralItemRepository.ItemExists(id)) == false)
                 throw new KeyNotFoundException();
 
             await _tabelaGeralItemRepository.DeleteAsync(id);
@@ -48,12 +48,12 @@ namespace GestorMEI.BLL.Services
                 return await _tabelaGeralItemRepository.GetAllItemsAsync(tabelaGeralId.Value);
         }
 
-        public async Task<TabelaGeralItemDTO> GetByIdAsync(Guid id)
+        public async Task<TabelaGeralItemDTO?> GetByIdAsync(Guid id)
         {
             return await _tabelaGeralItemRepository.GetByIdAsync(id);
         }
 
-        public async Task<TabelaGeralItemDTO> GetBySiglaAsync(Guid tabelaGeralId, string sigla)
+        public async Task<TabelaGeralItemDTO?> GetBySiglaAsync(Guid tabelaGeralId, string sigla)
         {
             return await _tabelaGeralItemRepository.GetBySiglaAsync(tabelaGeralId, sigla);
         }
@@ -67,8 +67,8 @@ namespace GestorMEI.BLL.Services
             if (string.IsNullOrEmpty(dto.Descricao)) throw new ArgumentNullException(nameof(dto.Descricao), "Descrição do item não pode estar vazia");
             if (dto.TabelaGeralId == Guid.Empty) throw new ArgumentException(nameof(dto.TabelaGeralId), "O item precisa estar atrelado a uma tabela geral");
             
-            var item = await _tabelaGeralItemRepository.GetBySiglaAsync(dto.TabelaGeralId, dto.Sigla);
-            if (item != null) throw new Exception("Já existe uma tabela geral com essa sigla");
+            var item = await _tabelaGeralItemRepository.ItemExists(dto.TabelaGeralId, dto.Sigla);
+            if (item != false) throw new Exception("Já existe uma tabela geral com essa sigla");
 
             dto.DataAlteracao = DateTime.UtcNow.ToUniversalTime();
             dto.Sigla = dto.Sigla.ToUpper();

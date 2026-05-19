@@ -68,14 +68,13 @@ namespace GestorMEI.BLL.Services
             if (id == Guid.Empty)
                 throw new ArgumentNullException("Empresa não informada");
 
-            var empresa = await _repository.GetEmpresaByIdAsync(id);
-            if (empresa == null)
+            if (await _repository.EmpresaExists(id) == false)
                 throw new KeyNotFoundException();
 
             await _repository.DeleteEmpresaAsync(id);
         }
 
-        public async Task<EmpresaDTO> GetEmpresaByCNPJAsync(string cnpj)
+        public async Task<EmpresaDTO?> GetEmpresaByCNPJAsync(string cnpj)
         {
             if (string.IsNullOrEmpty(cnpj))
                 throw new ArgumentNullException("CNPJ não informado");
@@ -85,17 +84,12 @@ namespace GestorMEI.BLL.Services
             return await _repository.GetEmpresaByCNPJAsync(cnpj);
         }
 
-        public async Task<EmpresaDTO> GetEmpresaByIdAsync(Guid id)
+        public async Task<EmpresaDTO?> GetEmpresaByIdAsync(Guid id)
         {
             if (id == Guid.Empty)
                 throw new ArgumentNullException("Id da empresa não informado");
 
             return await _repository.GetEmpresaByIdAsync(id);
-        }
-
-        public async Task<IEnumerable<EmpresaDTO>> GetEmpresasAsync()
-        {
-            return await _repository.GetEmpresasAsync();
         }
 
         public async Task UpdateEmpresaAsync(EmpresaDTO empresa)
@@ -113,9 +107,14 @@ namespace GestorMEI.BLL.Services
             await _repository.UpdateEmpresaAsync(empresa);
         }
 
-        public async Task<EmpresaDTO> GetEmpresaByUserIdAsync(Guid usuarioId)
+        public async Task<EmpresaDTO?> GetEmpresaByUserIdAsync(Guid usuarioId)
         {
             return await _repository.GetEmpresaByUsuarioIdAsync(usuarioId);
+        }
+
+        public async Task<Guid> GetEmpresaIdByUserIdAsync(Guid userId)
+        {
+            return await _repository.GetEmpresaIdByUserId(userId);
         }
     }
 }

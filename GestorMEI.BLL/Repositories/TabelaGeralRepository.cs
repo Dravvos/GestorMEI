@@ -46,20 +46,37 @@ namespace GestorMEI.BLL.Repositories
 
         public async Task<IList<TabelaGeralDTO>> GetAllAsync()
         {
-            var tabelasGerais = await con.TabelaGeral.ToListAsync();
-            return Map<List<TabelaGeralDTO>>.Convert(tabelasGerais);
+            var tabelasGerais = await con.TabelaGeral.AsNoTracking().Select(x => new TabelaGeralDTO
+            {
+                Id = x.Id,
+                Nome = x.Nome,
+                Descricao = x.Descricao
+            }).ToListAsync();
+            return tabelasGerais;
         }
 
-        public async Task<TabelaGeralDTO> GetByIdAsync(Guid id)
+        public async Task<TabelaGeralDTO?> GetByIdAsync(Guid id)
         {
-            var tabelaGeral = await con.TabelaGeral.FirstOrDefaultAsync(x => x.Id == id);
-            return Map<TabelaGeralDTO>.Convert(tabelaGeral);
+            var tabelaGeral = await con.TabelaGeral.AsNoTracking().Where(x => x.Id == id)
+                .Select(x => new TabelaGeralDTO
+                {
+                    Id = x.Id,
+                    Descricao = x.Descricao,
+                    Nome = x.Nome
+                }).FirstOrDefaultAsync();
+            return tabelaGeral;
         }
 
-        public async Task<TabelaGeralDTO> GetByNomeAsync(string nome)
+        public async Task<TabelaGeralDTO?> GetByNomeAsync(string nome)
         {
-            var tabelaGeral = await con.TabelaGeral.FirstOrDefaultAsync(x => x.Nome == nome);
-            return Map<TabelaGeralDTO>.Convert(tabelaGeral);
+            var tabelaGeral = await con.TabelaGeral.AsNoTracking().Where(x => x.Nome == nome)
+               .Select(x => new TabelaGeralDTO
+               {
+                   Id = x.Id,
+                   Descricao = x.Descricao,
+                   Nome = x.Nome
+               }).FirstOrDefaultAsync();
+            return tabelaGeral;
         }
 
         public async Task<TabelaGeralDTO> UpdateAsync(TabelaGeralDTO dto)

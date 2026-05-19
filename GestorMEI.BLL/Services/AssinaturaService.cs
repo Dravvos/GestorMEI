@@ -12,12 +12,10 @@ namespace GestorMEI.BLL.Services
     public class AssinaturaService : IAssinaturaService
     {
         private readonly IAssinaturaRepository _assinaturaRepository;
-        private readonly ITabelaGeralItemRepository _tabelaGeralItemRepository;
 
-        public AssinaturaService(IAssinaturaRepository assinaturaRepository, ITabelaGeralItemRepository tabelaGeralItemRepository)
+        public AssinaturaService(IAssinaturaRepository assinaturaRepository)
         {
             _assinaturaRepository = assinaturaRepository;
-            _tabelaGeralItemRepository = tabelaGeralItemRepository;
         }
 
         public void ValidarAssinatura(AssinaturaDTO dto)
@@ -48,14 +46,14 @@ namespace GestorMEI.BLL.Services
             if (id == Guid.Empty)
                 throw new ArgumentNullException("Id inválido.");
 
-            var assinatura = await _assinaturaRepository.GetAssinaturaByUserId(id);
-            if (assinatura == null)
+            var assinatura = await _assinaturaRepository.AssinaturaExists(id);
+            if (assinatura == false)
                 throw new KeyNotFoundException();
 
             await _assinaturaRepository.DeleteAssinatura(id);
         }
 
-        public async Task<AssinaturaDTO> GetAssinaturaByUserId(Guid usuarioId)
+        public async Task<AssinaturaDTO?> GetAssinaturaByUserId(Guid usuarioId)
         {
             if (usuarioId == Guid.Empty)
                 throw new ArgumentNullException("Usuário inválido.");

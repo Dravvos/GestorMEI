@@ -20,6 +20,11 @@ namespace GestorMEI.BLL.Repositories
             con = context;
         }
 
+        public async Task<bool> AssinaturaExists(Guid id)
+        {
+            return await con.Assinatura.AsNoTracking().AnyAsync(x => x.Id == id);
+        }
+
         public async Task CreateAssinatura(AssinaturaDTO assinatura)
         {
             var model = Map<AssinaturaModel>.Convert(assinatura);
@@ -36,9 +41,25 @@ namespace GestorMEI.BLL.Repositories
 
         public async Task<AssinaturaDTO> GetAssinaturaByUserId(Guid usuarioId)
         {
-            var assinatura = await con.Assinatura.Include(x => x.TipoAssinatura.TabelaGeral).Include(x=>x.StatusAssinatura.TabelaGeral)
-                .FirstOrDefaultAsync(x => x.UsuarioId == usuarioId);
-            return Map<AssinaturaDTO>.Convert(assinatura);
+            var assinatura = await con.Assinatura.AsNoTracking().Where(x => x.UsuarioId == usuarioId)
+               .Select(x => new AssinaturaDTO
+               {
+                   DataInicio = x.DataInicio,
+                   DataFim = x.DataFim,
+                   StatusAssinatura = new TabelaGeralItemDTO
+                   {
+                       Id = x.StatusAssinatura.Id,
+                       Descricao = x.StatusAssinatura.Descricao,
+                       Sigla = x.StatusAssinatura.Sigla,
+                   },
+                   TipoAssinatura = new TabelaGeralItemDTO
+                   {
+                       Id = x.TipoAssinatura.Id,
+                       Descricao = x.TipoAssinatura.Descricao,
+                       Sigla = x.TipoAssinatura.Sigla,
+                   }
+               }).FirstOrDefaultAsync();
+            return assinatura;
         }
 
         public async Task UpdateAssinatura(AssinaturaDTO assinatura)

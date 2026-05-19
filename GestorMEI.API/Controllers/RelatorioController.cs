@@ -37,10 +37,10 @@ namespace GestorMEI.API.Controllers
                 var claims = decodedToken.Claims;
 
                 var usuarioId = Guid.Parse(claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Sub)?.Value);
-                var empresa = await _empresaService.GetEmpresaByUserIdAsync(usuarioId);
-                var relatorio = await _relatorioService.GerarRelatorioVendas(empresa.Id.Value, dataInicio, dataFim);
+                var empresaId = await _empresaService.GetEmpresaIdByUserIdAsync(usuarioId);
+                var relatorio = await _relatorioService.GerarRelatorioVendas(empresaId, dataInicio, dataFim);
                 if (relatorio == null || relatorio.Count == 0)
-                    return NotFound();
+                    return Ok();
 
                 return Ok(relatorio);
             }
@@ -67,8 +67,8 @@ namespace GestorMEI.API.Controllers
                 var claims = decodedToken.Claims;
 
                 var usuarioId = Guid.Parse(claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Sub)?.Value);
-                var empresa = await _empresaService.GetEmpresaByUserIdAsync(usuarioId);
-                var vendas = await _vendaService.GetVendasByDateAsync(empresa.Id.Value, dataInicio, dataFim);
+                var empresaId = await _empresaService.GetEmpresaIdByUserIdAsync(usuarioId);
+                var vendas = await _vendaService.GetVendasByDateAsync(empresaId, dataInicio, dataFim);
                 if (vendas == null || vendas.Any() == false)
                     return NotFound();
 

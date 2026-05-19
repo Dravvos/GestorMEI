@@ -9,6 +9,6 @@ namespace GestorMEI.BLL.Services.Interfaces
 {
     public interface IRelatorioService
     {
-        Task<List<RelatorioDTO>> GerarRelatorioVendas(Guid empresaId, DateOnly? dataInicio, DateOnly? dataFim);
+        Task<IList<RelatorioDTO>?> GerarRelatorioVendas(Guid empresaId, DateOnly? dataInicio, DateOnly? dataFim);
     }
 }

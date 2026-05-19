@@ -31,7 +31,7 @@ namespace GestorMEI.API.Controllers
                 if (venda == null)
                     return UnprocessableEntity("Venda não pode ser nula");
                 await _vendaService.CreateVendaAsync(venda);
-                return Ok();
+                return StatusCode(201, venda.Id);
             }
             catch (ArgumentException ex)
             {
@@ -52,10 +52,7 @@ namespace GestorMEI.API.Controllers
             {
                 if (empresaId == Guid.Empty)
                     return UnprocessableEntity("Id da empresa não pode ser vazio");
-                var vendas = await _vendaService.GetVendasAsync(empresaId);
-                long objectSize = 0;
-                objectSize = ObterEspacoUtilizado(vendas, objectSize);
-
+                
                 HttpContext.Request.Cookies.TryGetValue("AuthToken", out var cookie);
 
                 if (string.IsNullOrEmpty(cookie))
@@ -66,6 +63,9 @@ namespace GestorMEI.API.Controllers
 
                 var usuarioId = Guid.Parse(claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Sub)?.Value);
 
+                var vendas = await _vendaService.GetVendasAsync(empresaId);
+                long objectSize = ObterEspacoUtilizado(vendas);
+
                 var assinatura = await _assinaturaService.GetAssinaturaByUserId(usuarioId);
                 if ((assinatura.TipoAssinatura.Sigla == "ESS" && objectSize > 1024 * 1024 * 80)
                     || (assinatura.TipoAssinatura.Sigla == "AVNC" && objectSize > 1024 * 1024 * 200)
@@ -75,10 +75,10 @@ namespace GestorMEI.API.Controllers
                 }
 
                 if (Data != null)
-                    vendas = vendas.Where(x => x.DataVenda == Data).ToList();
+                    vendas = vendas.Where(x => x.DataVenda == Data);
 
                 if (vendas == null || vendas.Any() == false)
-                    return NotFound();
+                    return Ok();
                 return Ok(vendas);
             }
             catch (Exception ex)
@@ -89,26 +89,21 @@ namespace GestorMEI.API.Controllers
             }
         }
 
-        private long ObterEspacoUtilizado(IEnumerable<VendaDTO> vendas, long objectSize)
+        private long ObterEspacoUtilizado(IEnumerable<VendaDTO> vendas)
         {
+            long objectSize = 0;
             foreach (var venda in vendas)
             {
-                objectSize += venda.DataAlteracao != null ? Marshal.SizeOf(venda.DataAlteracao.Value.ToOADate()) : 0;//Data Alteração
-                objectSize += Marshal.SizeOf(venda.DataInclusao.ToOADate());//Data Inclusao
                 objectSize += Marshal.SizeOf(typeof(Guid));//Id
                 objectSize += Marshal.SizeOf(typeof(Guid));//EmpresaId
                 objectSize += Marshal.SizeOf(typeof(float)); // Valor Venda
                 objectSize += Marshal.SizeOf(typeof(bool)); //Com NF
                 objectSize += Marshal.SizeOf(typeof(DateOnly)); // Data Venda
                 objectSize += Marshal.SizeOf(typeof(Guid));//TG TipoVenda
-                objectSize += venda.UsuarioInclusao.Length * Marshal.SizeOf(typeof(char));//Usuário Inclusao
-                objectSize += venda.UsuarioAlteracao != null ? venda.UsuarioAlteracao.Length * Marshal.SizeOf(typeof(char)) : 0;//Usuário Alteração
             }
 
             //Empresa
             objectSize += Marshal.SizeOf(typeof(Guid));//Id
-            objectSize += Marshal.SizeOf(vendas.FirstOrDefault()?.Empresa?.DataInclusao.ToOADate());//Data Inclusao
-            objectSize += vendas.FirstOrDefault()?.Empresa?.DataAlteracao != null ? Marshal.SizeOf(vendas.FirstOrDefault()?.Empresa?.DataAlteracao.Value.ToOADate()) : 0;//Data Alteração
             objectSize += vendas.FirstOrDefault()?.Empresa?.RazaoSocial?.Length * Marshal.SizeOf(typeof(char)) ?? 0;
             objectSize += vendas.FirstOrDefault()?.Empresa?.NomeFantasia?.Length * Marshal.SizeOf(typeof(char)) ?? 0;
             objectSize += vendas.FirstOrDefault()?.Empresa?.CNPJ?.Length * Marshal.SizeOf(typeof(char)) ?? 0;
@@ -134,7 +129,7 @@ namespace GestorMEI.API.Controllers
                     return UnprocessableEntity("Id da venda não pode ser vazio");
                 var venda = await _vendaService.GetVendaByIdAsync(id);
                 if (venda == null)
-                    return NotFound();
+                    return Ok();
                 return Ok(venda);
             }
             catch (Exception ex)
@@ -160,7 +155,7 @@ namespace GestorMEI.API.Controllers
                 venda.UsuarioAlteracao = User.FindFirstValue(JwtRegisteredClaimNames.Name);
 
                 await _vendaService.UpdateVendaAsync(venda);
-                return Ok();
+                return NoContent();
             }
             catch (ArgumentException ex)
             {
@@ -182,7 +177,7 @@ namespace GestorMEI.API.Controllers
                 if (id == Guid.Empty)
                     return UnprocessableEntity("Id da venda não pode ser vazio");
                 await _vendaService.DeleteVendaAsync(id);
-                return Ok();
+                return NoContent();
             }
             catch (Exception ex)
             {

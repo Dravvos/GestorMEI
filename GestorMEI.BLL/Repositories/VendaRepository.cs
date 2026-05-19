@@ -34,21 +34,21 @@ namespace GestorMEI.BLL.Repositories
 
         }
 
-        public async Task<VendaDTO> GetVendaByIdAsync(Guid id)
+        public async Task<VendaDTO?> GetVendaByIdAsync(Guid id)
         {
-            var venda = await con.Vendas.FirstOrDefaultAsync(x => x.Id == id);
+            var venda = await con.Vendas.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
             return Map<VendaDTO>.Convert(venda);
         }
 
         public async Task<IEnumerable<VendaDTO>> GetVendasAsync(Guid empresaId)
         {
-            var vendas = await con.Vendas.Where(x => x.EmpresaId == empresaId).Include(x => x.TipoVenda.TabelaGeral).Include(x=>x.Empresa).ToListAsync();
+            var vendas = await con.Vendas.AsNoTracking().Where(x => x.EmpresaId == empresaId).Include(x => x.TipoVenda.TabelaGeral).Include(x => x.Empresa).ToListAsync();
             return Map<List<VendaDTO>>.Convert(vendas);
         }
 
         public async Task<IEnumerable<VendaDTO>> GetVendasByDateAsync(Guid empresaId, DateOnly? dataInicio, DateOnly? dataFim)
         {
-            var vendas = await con.Vendas.Where(x => x.EmpresaId == empresaId).Include(x => x.TipoVenda.TabelaGeral).ToListAsync();
+            var vendas = await con.Vendas.AsNoTracking().Where(x => x.EmpresaId == empresaId).Include(x => x.TipoVenda.TabelaGeral).ToListAsync();
             if (dataInicio.HasValue)
                 vendas = vendas.Where(x => x.DataVenda >= dataInicio.Value).ToList();
             if (dataFim.HasValue)
@@ -70,6 +70,11 @@ namespace GestorMEI.BLL.Repositories
             model.UsuarioAlteracao = venda.UsuarioAlteracao;
             model.EmpresaId = venda.EmpresaId;
             await con.SaveChangesAsync();
+        }
+
+        public async Task<bool> VendaExist(Guid id)
+        {
+            return await con.Vendas.AsNoTracking().AnyAsync(x => x.Id == id);
         }
     }
 }

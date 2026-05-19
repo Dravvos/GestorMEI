@@ -9,6 +9,7 @@ namespace GestorMEI.BLL.Repositories.Interfaces
 {
     public interface IAssinaturaRepository
     {
+        Task<bool> AssinaturaExists(Guid id);
         Task CreateAssinatura(AssinaturaDTO assinatura);
         Task UpdateAssinatura(AssinaturaDTO assinatura);
         Task DeleteAssinatura(Guid id);

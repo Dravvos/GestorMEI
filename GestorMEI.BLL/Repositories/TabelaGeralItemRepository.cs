@@ -47,31 +47,90 @@ namespace GestorMEI.BLL.Repositories
 
         public async Task<IList<TabelaGeralItemDTO>> GetAllAsync()
         {
-            var ItensTabelasGerais = await con.TabelaGeralItem.Include(x => x.TabelaGeral).ToListAsync();
-            return Map<List<TabelaGeralItemDTO>>.Convert(ItensTabelasGerais);
+            var ItensTabelasGerais = await con.TabelaGeralItem.AsNoTracking().Select(x => new TabelaGeralItemDTO
+            {
+                Id = x.Id,
+                Descricao = x.Descricao,
+                Sigla = x.Sigla,
+                TabelaGeral = new TabelaGeralDTO
+                {
+                    Id = x.TabelaGeral.Id,
+                    Nome = x.TabelaGeral.Nome
+                }
+            }).ToListAsync();
+            return ItensTabelasGerais;
         }
 
         public async Task<IList<TabelaGeralItemDTO>> GetAllItemsAsync(Guid? tabelaGeralId)
         {
             var ItensTabelasGerais = new List<TabelaGeralItemModel>();
             if (tabelaGeralId != null)
-                ItensTabelasGerais = await con.TabelaGeralItem.Where(x => x.TabelaGeralId == tabelaGeralId.Value).Include(x => x.TabelaGeral).ToListAsync();
+            {
+                ItensTabelasGerais = await con.TabelaGeralItem.AsNoTracking().Where(x => x.TabelaGeralId == tabelaGeralId.Value)
+                    .Select(x => new TabelaGeralItemModel
+                    {
+                        Id = x.Id,
+                        Descricao = x.Descricao,
+                        Sigla = x.Sigla,
+                        TabelaGeral = new TabelaGeralModel { Id = x.TabelaGeral.Id, Nome = x.TabelaGeral.Nome }
+                    }).ToListAsync();
+            }
             else
-                ItensTabelasGerais = await con.TabelaGeralItem.Include(x => x.TabelaGeral).ToListAsync();
+            {
+                ItensTabelasGerais = await con.TabelaGeralItem.AsNoTracking().Select(x => new TabelaGeralItemModel
+                {
+                    Id = x.Id,
+                    Descricao = x.Descricao,
+                    Sigla = x.Sigla,
+                    TabelaGeral = new TabelaGeralModel { Id = x.TabelaGeral.Id, Nome = x.TabelaGeral.Nome }
+                }).ToListAsync();
+            }
 
             return Map<List<TabelaGeralItemDTO>>.Convert(ItensTabelasGerais);
         }
 
-        public async Task<TabelaGeralItemDTO> GetByIdAsync(Guid id)
+        public async Task<TabelaGeralItemDTO?> GetByIdAsync(Guid id)
         {
-            var tabelaGeralItem = await con.TabelaGeralItem.Include(x => x.TabelaGeral).FirstOrDefaultAsync(x => x.Id == id);
-            return Map<TabelaGeralItemDTO>.Convert(tabelaGeralItem);
+            var tabelaGeralItem = await con.TabelaGeralItem.AsNoTracking().Include(x => x.TabelaGeral).Where(x => x.Id == id)
+                 .Select(x => new TabelaGeralItemDTO
+                 {
+                     Id = x.Id,
+                     Descricao = x.Descricao,
+                     Sigla = x.Sigla,
+                     TabelaGeral = new TabelaGeralDTO
+                     {
+                         Id = x.TabelaGeral.Id,
+                         Nome = x.TabelaGeral.Nome
+                     }
+                 }).FirstOrDefaultAsync();
+            return tabelaGeralItem;
         }
 
-        public async Task<TabelaGeralItemDTO> GetBySiglaAsync(Guid tabelaGeralId, string sigla)
+        public async Task<TabelaGeralItemDTO?> GetBySiglaAsync(Guid tabelaGeralId, string sigla)
         {
-            var tabelaGeralItem = await con.TabelaGeralItem.Include(x => x.TabelaGeral).FirstOrDefaultAsync(x => x.TabelaGeralId == tabelaGeralId && x.Sigla == sigla);
-            return Map<TabelaGeralItemDTO>.Convert(tabelaGeralItem);
+            var tabelaGeralItem = await con.TabelaGeralItem.AsNoTracking().Where(x => x.TabelaGeralId == tabelaGeralId && x.Sigla == sigla)
+                .Select(x => new TabelaGeralItemDTO
+                {
+                    Id = x.Id,
+                    Descricao = x.Descricao,
+                    Sigla = x.Sigla,
+                    TabelaGeral = new TabelaGeralDTO
+                    {
+                        Id = x.TabelaGeral.Id,
+                        Nome = x.TabelaGeral.Nome
+                    }
+                }).FirstOrDefaultAsync();
+            return tabelaGeralItem;
+        }
+
+        public async Task<bool> ItemExists(Guid id)
+        {
+            return await con.TabelaGeralItem.AsNoTracking().AnyAsync(x => x.Id == id);
+        }
+
+        public async Task<bool> ItemExists(Guid tabelaGeralId, string sigla)
+        {
+            return await con.TabelaGeralItem.AsNoTracking().AnyAsync(x => x.TabelaGeralId == tabelaGeralId && x.Sigla == sigla);
         }
 
         public async Task<TabelaGeralItemDTO> UpdateAsync(TabelaGeralItemDTO item)

@@ -17,45 +17,47 @@ namespace GestorMEI.BLL.Services
             _tabelaGeralRepository = tabelaGeralRepository;
         }
 
-        public async Task<List<RelatorioDTO>> GerarRelatorioVendas(Guid empresaId, DateOnly? dataInicio, DateOnly? dataFim)
+        public async Task<IList<RelatorioDTO>?> GerarRelatorioVendas(Guid empresaId, DateOnly? dataInicio, DateOnly? dataFim)
         {
             var vendas = await _vendaRepository.GetVendasAsync(empresaId);
             if (dataInicio.HasValue)
-                vendas = vendas.Where(v => v.DataVenda >= dataInicio.Value).ToList();
+                vendas = vendas.Where(v => v.DataVenda >= dataInicio.Value);
 
             if (dataFim.HasValue)
-                vendas = vendas.Where(v => v.DataVenda <= dataFim.Value).ToList();
+                vendas = vendas.Where(v => v.DataVenda <= dataFim.Value);
 
             var tgTipoVendaServico = await _tabelaGeralRepository.GetByNomeAsync("TipoVenda");
+            var tiposVenda = await _tabelaGeralItemRepository.GetAllItemsAsync(tgTipoVendaServico.Id.Value);
 
-            var tipoVendaServico = await _tabelaGeralItemRepository.GetBySiglaAsync(tgTipoVendaServico.Id.Value, "SRVC");
-            var tipoVendaComercio = await _tabelaGeralItemRepository.GetBySiglaAsync(tgTipoVendaServico.Id.Value, "CMRC");
-            var tipoVendaIndustria = await _tabelaGeralItemRepository.GetBySiglaAsync(tgTipoVendaServico.Id.Value, "INDTR");
+            var tipoVendaServico = tiposVenda.FirstOrDefault(x => x.Sigla == "SRVC");
+            var tipoVendaComercio = tiposVenda.FirstOrDefault(x => x.Sigla == "CMRC");
+            var tipoVendaIndustria = tiposVenda.FirstOrDefault(x => x.Sigla == "INDTR");
 
             var vendasServico = vendas.Where(v => v.IdTGTipoVenda == tipoVendaServico.Id).ToList();
             var vendasComercio = vendas.Where(v => v.IdTGTipoVenda == tipoVendaComercio.Id).ToList();
             var vendasIndustria = vendas.Where(v => v.IdTGTipoVenda == tipoVendaIndustria.Id).ToList();
 
-            var retorno = new List<RelatorioDTO>();
+            
             if (vendas == null || vendas.Any() == false)
-                return retorno;
+                return null;
 
+            var retorno = new List<RelatorioDTO>(vendas.Count());
             //Vendas Serviço
             var dtoServico = new RelatorioDTO();
-            dtoServico.TotalVendas = vendasServico.Sum(x=>x.ValorVenda);
+            dtoServico.TotalVendas = vendasServico.Sum(x => x.ValorVenda);
             dtoServico.TotalVendasComNF = vendasServico.Where(x => x.ComNF).Sum(x => x.ValorVenda);
             dtoServico.TotalVendasSemNF = vendasServico.Where(x => !x.ComNF).Sum(x => x.ValorVenda);
             dtoServico.IdTGTipoVenda = tipoVendaServico.Id.Value;
             dtoServico.TipoVendaSigla = tipoVendaServico.Sigla;
-            dtoServico.TipoVendaDescricao= tipoVendaServico.Descricao;
+            dtoServico.TipoVendaDescricao = tipoVendaServico.Descricao;
 
             retorno.Add(dtoServico);
 
             //Vendas Comércio
             var dtoComercio = new RelatorioDTO();
             dtoComercio.TotalVendas = vendasComercio.Sum(x => x.ValorVenda);
-            dtoComercio.TotalVendasComNF = vendasComercio.Where(x => x.ComNF).Sum(x => x.ValorVenda);
-            dtoComercio.TotalVendasSemNF = vendasComercio.Where(x => !x.ComNF).Sum(x => x.ValorVenda);
+            dtoComercio.TotalVendasComNF = vendasComercio.FindAll(x => x.ComNF).Sum(x => x.ValorVenda);
+            dtoComercio.TotalVendasSemNF = vendasComercio.FindAll(x => !x.ComNF).Sum(x => x.ValorVenda);
             dtoComercio.IdTGTipoVenda = tipoVendaComercio.Id.Value;
             dtoComercio.TipoVendaSigla = tipoVendaComercio.Sigla;
             dtoComercio.TipoVendaDescricao = tipoVendaComercio.Descricao;
@@ -65,8 +67,8 @@ namespace GestorMEI.BLL.Services
             //Vendas Indústria
             var dtoIndustria = new RelatorioDTO();
             dtoIndustria.TotalVendas = vendasIndustria.Sum(x => x.ValorVenda);
-            dtoIndustria.TotalVendasComNF = vendasIndustria.Where(x => x.ComNF).Sum(x => x.ValorVenda);
-            dtoIndustria.TotalVendasSemNF = vendasIndustria.Where(x => !x.ComNF).Sum(x => x.ValorVenda);
+            dtoIndustria.TotalVendasComNF = vendasIndustria.FindAll(x => x.ComNF).Sum(x => x.ValorVenda);
+            dtoIndustria.TotalVendasSemNF = vendasIndustria.FindAll(x => !x.ComNF).Sum(x => x.ValorVenda);
             dtoIndustria.IdTGTipoVenda = tipoVendaIndustria.Id.Value;
             dtoIndustria.TipoVendaSigla = tipoVendaIndustria.Sigla;
             dtoIndustria.TipoVendaDescricao = tipoVendaIndustria.Descricao;

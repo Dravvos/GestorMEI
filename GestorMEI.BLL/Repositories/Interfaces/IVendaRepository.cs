@@ -11,7 +11,8 @@ namespace GestorMEI.BLL.Repositories.Interfaces
     {
         Task<IEnumerable<VendaDTO>> GetVendasByDateAsync(Guid empresaId, DateOnly? dataInicio, DateOnly? dataFim);
         Task<IEnumerable<VendaDTO>> GetVendasAsync(Guid empresaId);
-        Task<VendaDTO> GetVendaByIdAsync(Guid id);
+        Task<VendaDTO?> GetVendaByIdAsync(Guid id);
+        Task<bool> VendaExist(Guid id);
         Task CreateVendaAsync(VendaDTO venda);
         Task UpdateVendaAsync(VendaDTO venda);
         Task DeleteVendaAsync(Guid id);
