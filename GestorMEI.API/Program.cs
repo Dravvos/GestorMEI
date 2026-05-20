@@ -15,7 +15,7 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDbContext<MeiContext>(options =>
+builder.Services.AddDbContextPool<MeiContext>(options =>
 {
     var connection = Environment.GetEnvironmentVariable("MEIConn");
     options.UseNpgsql(connection);

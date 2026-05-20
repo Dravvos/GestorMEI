@@ -22,7 +22,7 @@ var localizationOptions = new RequestLocalizationOptions()
     .AddSupportedUICultures(supportedCultures);
 
 
-builder.Services.AddDbContext<PostgresContext>(options =>
+builder.Services.AddDbContextPool<PostgresContext>(options =>
 {
     options.UseNpgsql(Environment.GetEnvironmentVariable("MEIConn"));
 });
