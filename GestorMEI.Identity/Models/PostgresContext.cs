@@ -12,10 +12,6 @@ namespace GestorMEI.Identity.Models
         public PostgresContext()
         {
         }
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            var config = Environment.GetEnvironmentVariable("MEIConn");
-            optionsBuilder.UseNpgsql(config);
-        }
+
     }
 }

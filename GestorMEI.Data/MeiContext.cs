@@ -14,12 +14,6 @@ namespace GestorMEI.Data
         {
         }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            var connection = Environment.GetEnvironmentVariable("MEIConn");
-            optionsBuilder.UseNpgsql(connection);
-        }
-
         public DbSet<AssinaturaModel> Assinatura { get; set; }
         public DbSet<EmpresaModel> Empresa { get; set; }
         public DbSet<TabelaGeralModel> TabelaGeral { get; set; }
