@@ -39,7 +39,7 @@ namespace GestorMEI.BLL.Repositories
             await con.SaveChangesAsync();
         }
 
-        public async Task<AssinaturaDTO> GetAssinaturaByUserId(Guid usuarioId)
+        public async Task<AssinaturaDTO?> GetAssinaturaByUserId(Guid usuarioId)
         {
             var assinatura = await con.Assinatura.AsNoTracking().Where(x => x.UsuarioId == usuarioId)
                .Select(x => new AssinaturaDTO

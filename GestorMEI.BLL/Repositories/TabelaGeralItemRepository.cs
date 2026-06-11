@@ -55,7 +55,8 @@ namespace GestorMEI.BLL.Repositories
                 TabelaGeral = new TabelaGeralDTO
                 {
                     Id = x.TabelaGeral.Id,
-                    Nome = x.TabelaGeral.Nome
+                    Nome = x.TabelaGeral.Nome,
+                    Descricao=x.TabelaGeral.Descricao
                 }
             }).ToListAsync();
             return ItensTabelasGerais;
@@ -72,7 +73,7 @@ namespace GestorMEI.BLL.Repositories
                         Id = x.Id,
                         Descricao = x.Descricao,
                         Sigla = x.Sigla,
-                        TabelaGeral = new TabelaGeralModel { Id = x.TabelaGeral.Id, Nome = x.TabelaGeral.Nome }
+                        TabelaGeral = new TabelaGeralModel { Id = x.TabelaGeral.Id, Nome = x.TabelaGeral.Nome, Descricao= x.TabelaGeral.Descricao }
                     }).ToListAsync();
             }
             else
@@ -82,7 +83,7 @@ namespace GestorMEI.BLL.Repositories
                     Id = x.Id,
                     Descricao = x.Descricao,
                     Sigla = x.Sigla,
-                    TabelaGeral = new TabelaGeralModel { Id = x.TabelaGeral.Id, Nome = x.TabelaGeral.Nome }
+                    TabelaGeral = new TabelaGeralModel { Id = x.TabelaGeral.Id, Nome = x.TabelaGeral.Nome, Descricao=x.TabelaGeral.Descricao }
                 }).ToListAsync();
             }
 
@@ -100,7 +101,8 @@ namespace GestorMEI.BLL.Repositories
                      TabelaGeral = new TabelaGeralDTO
                      {
                          Id = x.TabelaGeral.Id,
-                         Nome = x.TabelaGeral.Nome
+                         Nome = x.TabelaGeral.Nome,
+                         Descricao=x.TabelaGeral.Descricao
                      }
                  }).FirstOrDefaultAsync();
             return tabelaGeralItem;
@@ -117,7 +119,8 @@ namespace GestorMEI.BLL.Repositories
                     TabelaGeral = new TabelaGeralDTO
                     {
                         Id = x.TabelaGeral.Id,
-                        Nome = x.TabelaGeral.Nome
+                        Nome = x.TabelaGeral.Nome,
+                        Descricao=x.TabelaGeral.Descricao
                     }
                 }).FirstOrDefaultAsync();
             return tabelaGeralItem;

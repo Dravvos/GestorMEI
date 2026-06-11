@@ -79,7 +79,7 @@ namespace GestorMEI.BLL.Repositories
 
         public async Task<IEnumerable<EmpresaDTO>> GetEmpresasAsync()
         {
-            var empresas = await con.Empresa.ToListAsync();
+            var empresas = await con.Empresa.AsNoTracking().ToListAsync();
             return Map<List<EmpresaDTO>>.Convert(empresas);
         }
 

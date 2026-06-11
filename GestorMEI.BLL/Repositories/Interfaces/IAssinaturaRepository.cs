@@ -13,6 +13,6 @@ namespace GestorMEI.BLL.Repositories.Interfaces
         Task CreateAssinatura(AssinaturaDTO assinatura);
         Task UpdateAssinatura(AssinaturaDTO assinatura);
         Task DeleteAssinatura(Guid id);
-        Task<AssinaturaDTO> GetAssinaturaByUserId(Guid usuarioId);
+        Task<AssinaturaDTO?> GetAssinaturaByUserId(Guid usuarioId);
     }
 }

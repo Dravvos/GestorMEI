@@ -47,12 +47,12 @@ namespace GestorMEI.BLL.Services
 
         }
 
-        public async Task<TabelaGeralDTO> GetByIdAsync(Guid id)
+        public async Task<TabelaGeralDTO?> GetByIdAsync(Guid id)
         {
             return await _tabelaGeralRepository.GetByIdAsync(id);
         }
 
-        public async Task<TabelaGeralDTO> GetByNomeAsync(string nome)
+        public async Task<TabelaGeralDTO?> GetByNomeAsync(string nome)
         {
             return await _tabelaGeralRepository.GetByNomeAsync(nome);
         }
