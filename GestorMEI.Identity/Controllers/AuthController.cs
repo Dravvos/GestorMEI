@@ -71,20 +71,21 @@ namespace GestorMEI.Identity.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginDTO dto)
         {
-
-            var user = await _userManager.FindByNameAsync(dto.Username);
-            if (user == null)
+            try
             {
-                user = await _userManager.FindByEmailAsync(dto.Username);
+                var user = await _userManager.FindByNameAsync(dto.Username);
                 if (user == null)
-                    return BadRequest("Invalid username/password");
-            }
+                {
+                    user = await _userManager.FindByEmailAsync(dto.Username);
+                    if (user == null)
+                        return BadRequest("Invalid username/password");
+                }
 
-            var result = await _signInManager.PasswordSignInAsync(user.UserName, dto.Password, false, false);
-            if (result.Succeeded)
-            {
-                var token = await _service.GenerateTokenAsync(user, _userManager);
-                var claims = new List<Claim>
+                var result = await _signInManager.PasswordSignInAsync(user.UserName, dto.Password, false, false);
+                if (result.Succeeded)
+                {
+                    var token = await _service.GenerateTokenAsync(user, _userManager);
+                    var claims = new List<Claim>
                 {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id),
                 new Claim(JwtRegisteredClaimNames.Name, user.UserName),
@@ -94,46 +95,52 @@ namespace GestorMEI.Identity.Controllers
                 new Claim(JwtRegisteredClaimNames.FamilyName, user.Sobrenome),
                 new Claim(JwtRegisteredClaimNames.Email,user.Email)
                 };
-                var roles = await _userManager.GetRolesAsync(user);
-                foreach (var role in roles)
-                {
-                    claims.Add(new Claim("role", role));
-                    if (_roleManager.SupportsRoleClaims)
+                    var roles = await _userManager.GetRolesAsync(user);
+                    foreach (var role in roles)
                     {
-                        var identityRole = await _roleManager.FindByNameAsync(role);
-                        if (identityRole != null)
-                            claims.AddRange(await _roleManager.GetClaimsAsync(identityRole));
+                        claims.Add(new Claim("role", role));
+                        if (_roleManager.SupportsRoleClaims)
+                        {
+                            var identityRole = await _roleManager.FindByNameAsync(role);
+                            if (identityRole != null)
+                                claims.AddRange(await _roleManager.GetClaimsAsync(identityRole));
+                        }
                     }
-                }
-                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                    var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
-                await HttpContext.SignInAsync(new ClaimsPrincipal(claimsIdentity));
+                    await HttpContext.SignInAsync(new ClaimsPrincipal(claimsIdentity));
 
-                var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-                var isDevelopment = environment == Environments.Development;
-                var cookieOptions = new CookieOptions();
-                if (isDevelopment == false)
-                {
-                    cookieOptions.HttpOnly = true;
-                    cookieOptions.Secure = true;
-                    cookieOptions.SameSite = SameSiteMode.Strict;
-                    cookieOptions.Expires = DateTime.Now.AddHours(3);
-                    cookieOptions.IsEssential = true; // Make the session cookie essential
+                    var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+                    var isDevelopment = environment == Environments.Development;
+                    var cookieOptions = new CookieOptions();
+                    if (isDevelopment == false)
+                    {
+                        cookieOptions.HttpOnly = true;
+                        cookieOptions.Secure = true;
+                        cookieOptions.SameSite = SameSiteMode.Strict;
+                        cookieOptions.Expires = DateTime.Now.AddHours(3);
+                        cookieOptions.IsEssential = true; // Make the session cookie essential
+                    }
+                    else
+                    {
+                        cookieOptions.HttpOnly = true;
+                        cookieOptions.Secure = true;
+                        cookieOptions.SameSite = SameSiteMode.None;
+                        cookieOptions.Expires = DateTime.Now.AddHours(3);
+                        cookieOptions.IsEssential = true; // Make the session cookie essential
+                    }
+
+                    Response.Cookies.Append("AuthToken", token, cookieOptions);
+                    return Ok("Logged in succesfully");
                 }
                 else
-                {
-                    cookieOptions.HttpOnly = true;
-                    cookieOptions.Secure = true;
-                    cookieOptions.SameSite = SameSiteMode.None;
-                    cookieOptions.Expires = DateTime.Now.AddHours(3);
-                    cookieOptions.IsEssential = true; // Make the session cookie essential
-                }
-
-                Response.Cookies.Append("AuthToken", token, cookieOptions);
-                return Ok("Logged in succesfully");
+                    return BadRequest("Invalid credentials");
             }
-            else
-                return BadRequest("Invalid credentials");
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+            
         }
 
         [HttpPut]
@@ -188,23 +195,39 @@ namespace GestorMEI.Identity.Controllers
 
         public IActionResult user()
         {
-            HttpContext.Request.Cookies.TryGetValue("AuthToken", out var cookie);
-
-            if (string.IsNullOrEmpty(cookie))
-                return Unauthorized();
-
-            var decodedToken = new JwtSecurityTokenHandler().ReadJwtToken(cookie);
-            var claims = decodedToken.Claims;
-
-            return Ok(new
+            try
             {
-                UserName = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Name)?.Value,
-                UserId = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Sub)?.Value,
-                Role = claims.FirstOrDefault(x => x.Type == "role")?.Value, // Check role
-                Nome = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.GivenName)?.Value, // Add other claims as needed
-                Sobrenome = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.FamilyName)?.Value,
-                Email = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Email)?.Value
-            });
+                HttpContext.Request.Cookies.TryGetValue("AuthToken", out var cookie);
+
+                if (string.IsNullOrEmpty(cookie))
+                    return Unauthorized();
+
+                var decodedToken = new JwtSecurityTokenHandler().ReadJwtToken(cookie);
+                var claims = decodedToken.Claims;
+
+                string userId = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Sub)?.Value;
+
+                if (string.IsNullOrEmpty(userId))
+                    userId = User.Claims.FirstOrDefault().Value;
+
+                var user = _userManager.FindByIdAsync(userId);
+                if (user == null)
+                    return Unauthorized();
+
+                return Ok(new
+                {
+                    UserName = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Name)?.Value,
+                    UserId = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Sub)?.Value,
+                    Role = claims.FirstOrDefault(x => x.Type == "role")?.Value, // Check role
+                    Nome = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.GivenName)?.Value, // Add other claims as needed
+                    Sobrenome = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.FamilyName)?.Value,
+                    Email = claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Email)?.Value
+                });
+            }
+            catch (Exception ex) 
+            {
+                return StatusCode(500, ex.Message);
+            }            
         }
 
         [HttpGet("csrf-token")]
@@ -305,7 +328,7 @@ namespace GestorMEI.Identity.Controllers
             if (isDevelopment)
                 url = $"http://localhost:5173/ConfirmarEmail/{encodedToken}";
             else
-                url = $"https://www.meicaixa.com.br/ConfirmarEmail/{encodedToken}";
+                url = $"https://www.danieloliveira.net.br/MEICaixa/ConfirmarEmail/{encodedToken}";
 
             mail.Subject = "Confirmação de Email";
             mail.IsBodyHtml = true;
